@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Taller Pro Dashboard</title>
+
+  <!-- Configuración PWA para iPhone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TallerPro">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3097/3097180.png">
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#080d1a',
+            cardBg: '#0f172a',
+            neonCyan: '#06b6d4',
+            neonGreen: '#10b981',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #050811;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .neon-border {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-24 select-none">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-40 bg-[#050811]/80 backdrop-blur-md border-b border-cyan-950 px-5 pt-12 pb-4 flex justify-between items-center">
+    <button class="text-cyan-400 p-2 rounded-lg bg-cardBg border border-cyan-900/50">
+      <i data-lucide="chevron-left" class="w-5 h-5"></i>
+    </button>
+    <h1 class="text-sm font-bold tracking-widest text-cyan-300 uppercase">CLIENT PROFILE</h1>
+    <button onclick="toggleNewClientModal()" class="text-cyan-400 p-2 rounded-lg bg-cardBg border border-cyan-900/50">
+      <i data-lucide="user-plus" class="w-5 h-5"></i>
+    </button>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-md mx-auto px-4 mt-4 space-y-5">
+
+    <!-- CLIENT AVATAR & INFO CARD -->
+    <div class="bg-cardBg/80 border neon-border rounded-2xl p-4 flex items-center space-x-4">
+      <div class="relative">
+        <div class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-neonCyan to-neonGreen">
+          <img id="clientAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="w-full h-full object-cover rounded-full" alt="Avatar">
+        </div>
+      </div>
+      <div>
+        <h2 id="clientName" class="text-lg font-bold tracking-wide text-white">SARAH J. CHEN</h2>
+        <p id="clientCarPlate" class="text-xs text-slate-400">Audi R8 · Plate: CA 458-7X</p>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-semibold bg-emerald-950 text-neonGreen border border-emerald-500/30">
+          <span class="w-1.5 h-1.5 rounded-full bg-neonGreen animate-pulse"></span> ACTIVE REPAIRS
+        </span>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="grid grid-cols-3 gap-2 bg-slate-900/90 p-1 rounded-xl border border-cyan-950 text-xs text-center font-medium">
+      <button class="py-2 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-500/30 flex items-center justify-center gap-1.5">
+        <i data-lucide="camera" class="w-3.5 h-3.5"></i> FOTOS
+      </button>
+      <button class="py-2 rounded-lg text-slate-400 hover:text-cyan-300 flex items-center justify-center gap-1.5">
+        <i data-lucide="receipt" class="w-3.5 h-3.5"></i> COSTES
+      </button>
+      <button class="py-2 rounded-lg text-slate-400 hover:text-cyan-300 flex items-center justify-center gap-1.5">
+        <i data-lucide="mic" class="w-3.5 h-3.5"></i> BITÁCORA
+      </button>
+    </div>
+
+    <!-- SECCIÓN FOTOS (DIRECTO A GDRIVE) -->
+    <div class="bg-cardBg border border-slate-800 rounded-2xl p-4">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Fotos de Reparación</span>
+        <label class="cursor-pointer bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-xs px-2.5 py-1 rounded-lg border border-cyan-500/30 flex items-center gap-1">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Añadir Foto
+          <input type="file" accept="image/*" capture="environment" class="hidden" onchange="uploadPhotoToDrive(event)">
+        </label>
+      </div>
+      <div id="photosGrid" class="grid grid-cols-3 gap-2">
+        <img class="rounded-lg h-20 w-full object-cover border border-cyan-500/20" src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=200">
+        <img class="rounded-lg h-20 w-full object-cover border border-cyan-500/20" src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=200">
+        <div class="h-20 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-xs">
+          Auto Drive Sync
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DESGLOSE DE COSTES (EXCEL/SHEET) -->
+    <div class="bg-cardBg border border-slate-800 rounded-2xl p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Desglose de Costes</span>
+        <button onclick="addPartPrompt()" class="text-xs text-neonCyan flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Añadir Pieza
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[11px] text-left">
+          <thead class="text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="pb-2">ITEM</th>
+              <th class="pb-2 text-center">CANT</th>
+              <th class="pb-2 text-right">PRECIO</th>
+            </tr>
+          </thead>
+          <tbody id="costTableBody" class="divide-y divide-slate-800/50 text-slate-300">
+            <tr>
+              <td class="py-2 text-cyan-200">Mobil 1 Aceite 5W30</td>
+              <td class="py-2 text-center">6 L</td>
+              <td class="py-2 text-right">145.00 €</td>
+            </tr>
+            <tr>
+              <td class="py-2 text-cyan-200">Pastillas de Freno Brembo</td>
+              <td class="py-2 text-center">2</td>
+              <td class="py-2 text-right">280.00 €</td>
+            </tr>
+            <tr>
+              <td class="py-2 text-cyan-200">Mano de Obra (Horas)</td>
+              <td class="py-2 text-center">3 hrs</td>
+              <td class="py-2 text-right">450.00 €</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-800 flex justify-between items-center">
+        <span class="text-xs text-slate-400">TOTAL ESTIMADO:</span>
+        <span class="text-sm font-bold text-neonGreen">875.00 €</span>
+      </div>
+    </div>
+
+    <!-- SECCIÓN NOTAS DE VOZ / TRANSCRIPCIÓN A DOC -->
+    <div class="bg-cardBg border border-slate-800 rounded-2xl p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Notas de Voz / Bitácora Doc</span>
+        <button id="recordBtn" onclick="toggleVoiceRecording()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs px-2.5 py-1 rounded-lg border border-red-500/30 flex items-center gap-1">
+          <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span id="recordText">Grabar Nota</span>
+        </button>
+      </div>
+      <div id="notesContainer" class="space-y-2 mt-2">
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300">
+          <div class="flex justify-between text-[10px] text-slate-500 mb-1">
+            <span>Diagnóstico Inicial (Mecánico)</span>
+            <span>10:30 AM</span>
+          </div>
+          "Ruido en la suspensión delantera al girar a bajas velocidades. Fuga detectada en amortiguador derecho."
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- NAVBAR INFERIOR -->
+  <nav class="fixed bottom-0 inset-x-0 bg-[#050811]/90 backdrop-blur-lg border-t border-slate-800 py-3 px-6 flex justify-around items-center z-50">
+    <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-cyan-400">
+      <i data-lucide="home" class="w-5 h-5"></i>
+      <span class="text-[10px]">Inicio</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-cyan-400">
+      <i data-lucide="car" class="w-5 h-5"></i>
+      <span class="text-[10px]">Coches</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-cyan-400">
+      <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+      <span class="text-[10px]">Compras</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-cyan-400">
+      <i data-lucide="user" class="w-5 h-5"></i>
+      <span class="text-[10px]">Perfil</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: NUEVO CLIENTE -->
+  <div id="newClientModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cardBg border neon-border rounded-2xl w-full max-w-sm p-5 space-y-4">
+      <h3 class="text-sm font-bold text-cyan-300 uppercase">Dar de Alta Cliente</h3>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-400">Nombre del Cliente</label>
+          <input id="newClientName" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white mt-1 focus:border-cyan-400 outline-none" placeholder="Juan Pérez">
+        </div>
+        <div>
+          <label class="text-slate-400">Vehículo / Modelo</label>
+          <input id="newCarModel" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white mt-1 focus:border-cyan-400 outline-none" placeholder="Audi A4 2.0 TDI">
+        </div>
+        <div>
+          <label class="text-slate-400">Matrícula</label>
+          <input id="newPlate" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white mt-1 focus:border-cyan-400 outline-none" placeholder="1234-LMN">
+        </div>
+        <div>
+          <label class="text-slate-400">Teléfono</label>
+          <input id="newPhone" type="tel" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white mt-1 focus:border-cyan-400 outline-none" placeholder="+34 600 000 000">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="toggleNewClientModal()" class="flex-1 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs">Cancelar</button>
+        <button onclick="submitNewClient()" class="flex-1 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs">Crear en Drive</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL DE TU IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxITvbcWWuXRkEpyWSfguEzPsx1NESw3fG4h7QxSbt3G5Gc12QBt_JlpdJ05dcaieCX_w/exec";
+
+    // Variables de sesión del cliente activo actual
+    let activeClient = {
+      photosFolderId: "",
+      costSheetId: "",
+      docId: ""
+    };
+
+    lucide.createIcons();
+
+    function toggleNewClientModal() {
+      const modal = document.getElementById('newClientModal');
+      modal.classList.toggle('hidden');
+    }
+
+    // 1. Enviar alta de cliente a Apps Script
+    async function submitNewClient() {
+      const name = document.getElementById('newClientName').value;
+      const carModel = document.getElementById('newCarModel').value;
+      const plate = document.getElementById('newPlate').value;
+      const phone = document.getElementById('newPhone').value;
+
+      if (!name || !plate) return alert("Nombre y matrícula son obligatorios");
+
+      alert("Creando estructura de carpetas, Excel y Doc en Drive...");
+
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'createClient',
+            payload: { name, carModel, plate, phone }
+          })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          activeClient = data;
+          document.getElementById('clientName').innerText = name.toUpperCase();
+          document.getElementById('clientCarPlate').innerText = `${carModel} · Plate: ${plate}`;
+          toggleNewClientModal();
+          alert("¡Cliente y carpetas creados con éxito en Google Drive!");
+        }
+      } catch (err) {
+        alert("Error de conexión con Apps Script: " + err);
+      }
+    }
+
+    // 2. Subir Foto tomada desde el iPhone directamente a la carpeta FOTOS de Drive
+    function uploadPhotoToDrive(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result;
+        alert("Subiendo foto a Google Drive...");
+        
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'uploadPhoto',
+              payload: {
+                folderId: activeClient.photosFolderId,
+                base64Data: base64Data,
+                filename: file.name
+              }
+            })
+          });
+          const result = await res.json();
+          if(result.status === "success") {
+            alert("Foto guardada en la carpeta 'FOTOS' de Drive.");
+          }
+        } catch(err) {
+          alert("Error subiendo foto: " + err);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 3. Añadir Pieza al Excel (Google Sheet)
+    async function addPartPrompt() {
+      const item = prompt("Nombre de la pieza o concepto:");
+      if (!item) return;
+      const qty = prompt("Cantidad:", "1");
+      const unitPrice = prompt("Precio unitario (€):", "50");
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'addCostItem',
+            payload: {
+              costSheetId: activeClient.costSheetId,
+              item, qty, unitPrice
+            }
+          })
+        });
+        
+        // Añadir visualmente a la tabla
+        const tbody = document.getElementById('costTableBody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2 text-cyan-200">${item}</td>
+          <td class="py-2 text-center">${qty}</td>
+          <td class="py-2 text-right">${(Number(qty)*Number(unitPrice)).toFixed(2)} €</td>
+        `;
+        tbody.appendChild(tr);
+      } catch(err) {
+        alert("Error al añadir pieza: " + err);
+      }
+    }
+
+    // 4. Transcripción de Voz a Texto nativa de iPhone y guardado en Google Doc
+    let recognition;
+    let isRecording = false;
+
+    function toggleVoiceRecording() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Tu navegador no soporta reconocimiento de voz. Escribe la nota manualmente.");
+        const note = prompt("Escribe la nota para el Google Doc:");
+        if (note) sendNoteToDoc(note);
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!isRecording) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isRecording = true;
+          document.getElementById('recordText').innerText = "Escuchando...";
+          document.getElementById('recordBtn').classList.add("bg-red-600", "text-white");
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          sendNoteToDoc(transcript);
+        };
+
+        recognition.onerror = () => {
+          stopRecordingUI();
+        };
+
+        recognition.onend = () => {
+          stopRecordingUI();
+        };
+
+        recognition.start();
+      } else {
+        recognition.stop();
+        stopRecordingUI();
+      }
+    }
+
+    function stopRecordingUI() {
+      isRecording = false;
+      document.getElementById('recordText').innerText = "Grabar Nota";
+      document.getElementById('recordBtn').classList.remove("bg-red-600", "text-white");
+    }
+
+    async function sendNoteToDoc(text) {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'addNote',
+            payload: {
+              docId: activeClient.docId,
+              noteText: text,
+              author: "Mecánico iPhone"
+            }
+          })
+        });
+
+        const container = document.getElementById('notesContainer');
+        const noteDiv = document.createElement('div');
+        noteDiv.className = "p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300";
+        noteDiv.innerHTML = `
+          <div class="flex justify-between text-[10px] text-slate-500 mb-1">
+            <span>Nota de Voz</span>
+            <span>Ahora</span>
+          </div>
+          "${text}"
+        `;
+        container.prepend(noteDiv);
+      } catch(err) {
+        alert("Error al sincronizar con Google Doc: " + err);
+      }
+    }
+  </script>
+</body>
+</html>
