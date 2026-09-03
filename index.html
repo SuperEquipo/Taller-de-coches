@@ -28,6 +28,30 @@
         }
       }
     }
+    async function getContactFromPhone() {
+  const props = ['name', 'tel'];
+  const opts = { multiple: false };
+
+  // Comprueba si el dispositivo soporta leer contactos
+  if ('contacts' in navigator && 'ContactsManager' in window) {
+    try {
+      const contacts = await navigator.contacts.select(props, opts);
+      if (contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name[0]) {
+          document.getElementById('newClientName').value = contact.name[0];
+        }
+        if (contact.tel && contact.tel[0]) {
+          document.getElementById('newPhone').value = contact.tel[0];
+        }
+      }
+    } catch (ex) {
+      console.log("Acceso a contactos cancelado o denegado.");
+    }
+  } else {
+    alert("Tu versión de iOS requiere rellenar los datos manualmente o usar el autorrelleno de Safari.");
+  }
+}
   </script>
   <style>
     body {
