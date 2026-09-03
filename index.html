@@ -28,30 +28,6 @@
         }
       }
     }
-    async function getContactFromPhone() {
-  const props = ['name', 'tel'];
-  const opts = { multiple: false };
-
-  // Comprueba si el dispositivo soporta leer contactos
-  if ('contacts' in navigator && 'ContactsManager' in window) {
-    try {
-      const contacts = await navigator.contacts.select(props, opts);
-      if (contacts.length > 0) {
-        const contact = contacts[0];
-        if (contact.name && contact.name[0]) {
-          document.getElementById('newClientName').value = contact.name[0];
-        }
-        if (contact.tel && contact.tel[0]) {
-          document.getElementById('newPhone').value = contact.tel[0];
-        }
-      }
-    } catch (ex) {
-      console.log("Acceso a contactos cancelado o denegado.");
-    }
-  } else {
-    alert("Tu versión de iOS requiere rellenar los datos manualmente o usar el autorrelleno de Safari.");
-  }
-}
   </script>
   <style>
     body {
@@ -215,6 +191,12 @@
   <div id="newClientModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-cardBg border neon-border rounded-2xl w-full max-w-sm p-5 space-y-4">
       <h3 class="text-sm font-bold text-cyan-300 uppercase">Dar de Alta Cliente</h3>
+
+      <!-- Botón para leer contactos del iPhone (dentro del formulario) -->
+      <button type="button" onclick="getContactFromPhone()" class="w-full py-2 bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/60 text-cyan-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+        <i data-lucide="contact" class="w-4 h-4"></i> Seleccionar de Agenda iPhone
+      </button>
+
       <div class="space-y-3 text-xs">
         <div>
           <label class="text-slate-400">Nombre del Cliente</label>
@@ -240,11 +222,7 @@
     </div>
   </div>
 
-  <!-- Botón para leer contactos del iPhone -->
-<button type="button" onclick="getContactFromPhone()" class="w-full py-2 mb-3 bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-2">
-  <i data-lucide="contact" class="w-4 h-4"></i> Seleccionar de la Agenda del iPhone
-</button>
-
+  <!-- JAVASCRIPT APP LOGIC -->
   <script>
     // URL DE TU IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxITvbcWWuXRkEpyWSfguEzPsx1NESw3fG4h7QxSbt3G5Gc12QBt_JlpdJ05dcaieCX_w/exec";
@@ -261,6 +239,32 @@
     function toggleNewClientModal() {
       const modal = document.getElementById('newClientModal');
       modal.classList.toggle('hidden');
+      lucide.createIcons();
+    }
+
+    // 0. Importar contacto de la agenda del iPhone
+    async function getContactFromPhone() {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+
+      if ('contacts' in navigator && 'ContactsManager' in window) {
+        try {
+          const contacts = await navigator.contacts.select(props, opts);
+          if (contacts.length > 0) {
+            const contact = contacts[0];
+            if (contact.name && contact.name[0]) {
+              document.getElementById('newClientName').value = contact.name[0];
+            }
+            if (contact.tel && contact.tel[0]) {
+              document.getElementById('newPhone').value = contact.tel[0];
+            }
+          }
+        } catch (ex) {
+          console.log("Acceso a contactos cancelado o denegado.");
+        }
+      } else {
+        alert("Para importar automáticamente, usa Safari en iOS compatible o completa los datos manualmente.");
+      }
     }
 
     // 1. Enviar alta de cliente a Apps Script
@@ -347,7 +351,6 @@
           })
         });
         
-        // Añadir visualmente a la tabla
         const tbody = document.getElementById('costTableBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
