@@ -1036,15 +1036,26 @@
       }
     }
 
-    function openPhotoModal(idx) {
+   function openPhotoModal(idx) {
       selectedPhotoIndex = idx;
       const active = clientsData[activeClientIndex];
       const photoObj = active.photos[idx];
+      const photoUrl = typeof photoObj === 'string' ? photoObj : (photoObj.driveUrl || photoObj.url);
+
       document.getElementById('modalPreviewImg').src = typeof photoObj === 'string' ? photoObj : photoObj.url;
+
+      // Asegurar prefijo de España (34) si tiene 9 dígitos para que WhatsApp no dé error
+      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
+
+      const mensaje = encodeURIComponent(`Hola ${active.name}, te enviamos una evidencia de tu ${active.carModel} (${active.plate}) en FAST GARAGE:\n${photoUrl}`);
+      
+      // Asignar el enlace directo a WhatsApp
+      document.getElementById('waDirectBtn').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${mensaje}`;
+
       document.getElementById('photoViewerModal').classList.remove('hidden');
       lucide.createIcons();
     }
-
     function closePhotoModal() {
       document.getElementById('photoViewerModal').classList.add('hidden');
     }
@@ -1156,61 +1167,67 @@
       }
     }
 
-  // 🎙️ DICTADO INTELIGENTE (WEB SPEECH + ACTIVACIÓN NATIVA IPHONE)
+  // 🎙️ TRANSCRIPCIÓN EN TIEMPO REAL (SPEECH-TO-TEXT)
     let recognition;
     let isRecording = false;
 
     function toggleVoiceRecording() {
-      const input = document.getElementById('newNoteInput');
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      // Si el navegador/iOS no soporta la API experimental, enfocar teclado nativo con micrófono
       if (!SpeechRecognition) {
-        input.focus();
-        showHUD("🎙️ Toca el micrófono del teclado del iPhone para dictar", false);
-        setTimeout(hideHUD, 3000);
+        alert("Tu navegador no soporta transcripción por voz. Usa Google Chrome o Safari actualizado.");
         return;
       }
+
+      const input = document.getElementById('newNoteInput');
+      const btnText = document.getElementById('recordText');
+      const btn = document.getElementById('recordBtn');
 
       if (!isRecording) {
         try {
           recognition = new SpeechRecognition();
           recognition.lang = 'es-ES';
           recognition.continuous = false;
-          recognition.interimResults = false;
+          recognition.interimResults = true;
 
           recognition.onstart = () => {
             isRecording = true;
-            document.getElementById('recordText').innerText = "Escuchando...";
-            document.getElementById('recordBtn').classList.add("bg-rose-600", "text-white");
-            showHUD("🎙️ Habla ahora...", true);
+            btnText.innerText = "Escuchando...";
+            btn.classList.add("bg-rose-600", "text-white");
+            showHUD("🎙️ Habla ahora (Transcribiendo...)", true);
           };
 
           recognition.onresult = (e) => {
-            const transcript = e.results[0][0].transcript;
-            input.value = (input.value ? input.value + " " : "") + transcript;
-            sendNoteToGoogleDoc(transcript);
-            showHUD("✅ Nota dictada y guardada", false);
-            setTimeout(hideHUD, 1500);
+            let transcript = '';
+            for (let i = 0; i < e.results.length; i++) {
+              transcript += e.results[i][0].transcript;
+            }
+            input.value = transcript;
           };
 
-          recognition.onerror = () => {
+          recognition.onerror = (event) => {
             stopVoiceUI();
-            input.focus();
-            showHUD("🎙️ Usa el micro del teclado de tu iPhone", false);
-            setTimeout(hideHUD, 2500);
+            hideHUD();
+            console.log("Error de reconocimiento:", event.error);
           };
 
           recognition.onend = () => {
             stopVoiceUI();
+            hideHUD();
+            // Si transcribió texto, guardarlo automáticamente en el Doc
+            if (input.value.trim().length > 0) {
+              sendNoteToGoogleDoc(input.value.trim());
+              input.value = '';
+              showHUD("✅ Nota transcrita y guardada en Doc", false);
+              setTimeout(hideHUD, 1500);
+            }
           };
 
           recognition.start();
         } catch (err) {
           stopVoiceUI();
-          input.focus();
-          showHUD("🎙️ Usa el micro del teclado de tu iPhone", false);
-          setTimeout(hideHUD, 2500);
+          hideHUD();
+          alert("Error al iniciar el micrófono: " + err);
         }
       } else {
         if (recognition) recognition.stop();
@@ -1224,7 +1241,7 @@
       document.getElementById('recordBtn').classList.remove("bg-rose-600", "text-white");
     }
 
-    async function submitNewClient() {
+   async function submitNewClient() {
       const name = document.getElementById('newClientName').value.trim();
       const carModel = document.getElementById('newCarModel').value.trim();
       const plate = document.getElementById('newPlate').value.trim();
@@ -1232,9 +1249,17 @@
       const box = document.getElementById('newBox').value;
       const urgency = document.getElementById('newUrgency').value;
 
-      if (!name || !plate) return;
+      if (!name || !plate) {
+        alert("Nombre y matrícula son obligatorios.");
+        return;
+      }
 
-      showHUD("Creando cliente y carpetas en Drive...", true);
+      // Buscar el botón de envío y bloquearlo para evitar clics múltiples
+      const submitBtn = document.querySelector('#newClientModal .blue-nitro-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "⏳ Creando en Drive...";
+
+      showHUD("⚡ Creando Carpeta, Excel y Doc en Google Drive...", true);
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -1274,9 +1299,18 @@
           renderPitLane();
           renderClientsList();
           switchTab('inicio');
+          showHUD("✅ Coche creado con éxito", false);
+          setTimeout(hideHUD, 1500);
+        } else {
+          alert("Error: " + data.message);
         }
       } catch (err) {
         hideHUD();
+        alert("Error de conexión con Google Apps Script: " + err);
+      } finally {
+        // Restaurar el botón
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Crear en Drive";
       }
     }
 
