@@ -171,14 +171,38 @@
       <button onclick="showSubTab('notas')" id="subtab-notas" class="py-2 rounded-lg text-slate-400 hover:text-white">📝 NOTAS</button>
     </div>
 
-    <!-- 1. FOTOS -->
+  <!-- 1. FOTOS CON MULTI-SELECCIÓN Y ENVÍO REAL POR WHATSAPP -->
     <div id="subpanel-fotos" class="metal-panel rounded-2xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
           <span class="text-xs font-black text-white uppercase tracking-wider block">Evidencias Fotográficas</span>
-          <span class="text-[10px] text-slate-400 font-mono">Toca una foto para ampliar o enviar por WhatsApp</span>
+          <span class="text-[10px] text-slate-400 font-mono" id="photoSelectionCount">Toca las fotos para seleccionarlas</span>
         </div>
+        <button id="btnCancelSelect" onclick="clearPhotoSelection()" class="text-[10px] text-rose-400 metal-btn px-2 py-1 rounded-lg hidden">Deseleccionar</button>
       </div>
+
+      <!-- BOTONES DE SUBIDA -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <label class="cursor-pointer metal-btn hover:border-cyan-400 text-cyan-300 text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold">
+          <i data-lucide="camera" class="w-4 h-4"></i> Hacer Foto
+          <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleProcessPhoto(event)">
+        </label>
+        <label class="cursor-pointer metal-btn hover:border-cyan-400 text-slate-300 text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold">
+          <i data-lucide="image" class="w-4 h-4"></i> De Galería
+          <input type="file" accept="image/*" class="hidden" onchange="handleProcessPhoto(event)">
+        </label>
+      </div>
+
+      <!-- GRID DE FOTOS -->
+      <div id="photosGrid" class="grid grid-cols-3 gap-2 pt-2"></div>
+
+      <!-- BOTÓN FLOTANTE PARA ENVIAR FOTOS SELECCIONADAS -->
+      <div id="multiShareContainer" class="pt-2 hidden">
+        <button onclick="shareSelectedPhotosViaWhatsApp()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
+          <i data-lucide="share-2" class="w-4 h-4"></i> <span id="btnSharePhotosText">Enviar Fotos Seleccionadas</span>
+        </button>
+      </div>
+    </div>
 
       <div class="grid grid-cols-2 gap-2 pt-1">
         <label class="cursor-pointer metal-btn hover:border-cyan-400 text-cyan-300 text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold">
@@ -1098,9 +1122,13 @@
       }
     }
 
+    let selectedPhotosIndices = [];
+
     function renderClientPhotos(photos, isLoading = false) {
       const grid = document.getElementById('photosGrid');
       grid.innerHTML = '';
+      selectedPhotosIndices = [];
+      updateSelectionUI();
 
       if (isLoading) {
         grid.innerHTML = `<div class="col-span-3 text-center py-6 text-cyan-400 text-xs font-mono animate-pulse">Cargando fotos desde Google Drive...</div>`;
@@ -1110,51 +1138,110 @@
       if (photos && photos.length > 0) {
         photos.forEach((photoObj, idx) => {
           const imgSrc = typeof photoObj === 'string' ? photoObj : photoObj.url;
+          const isSelected = selectedPhotosIndices.includes(idx);
+
           const div = document.createElement('div');
-          div.className = "relative rounded-xl overflow-hidden h-24 border border-slate-700 cursor-pointer shadow-md active:scale-95 transition-transform";
-          div.onclick = () => openPhotoModal(idx);
-          div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" alt="Evidencia">`;
+          div.id = `photo-card-${idx}`;
+          div.className = `relative rounded-xl overflow-hidden h-24 border cursor-pointer shadow-md active:scale-95 transition-all ${isSelected ? 'border-cyan-400 ring-2 ring-cyan-400' : 'border-slate-700'}`;
+          
+          div.onclick = () => togglePhotoSelection(idx);
+
+          div.innerHTML = `
+            <img src="${imgSrc}" class="w-full h-full object-cover">
+            <div id="check-${idx}" class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-cyan-500 text-black' : 'bg-black/60 text-white border border-white/40'}">
+              <i data-lucide="check" class="w-3 h-3"></i>
+            </div>
+          `;
           grid.appendChild(div);
         });
       } else {
         grid.innerHTML = `<div class="col-span-3 text-center py-6 text-slate-500 text-xs font-mono">No hay fotos subidas para este vehículo.</div>`;
       }
-    }
-
-    function openPhotoModal(idx) {
-      selectedPhotoIndex = idx;
-      const active = clientsData[activeClientIndex];
-      const photoObj = active.photos[idx];
-      
-      let photoUrl = active.folderUrl;
-      if (photoObj && typeof photoObj === 'object' && photoObj.driveUrl) {
-        photoUrl = photoObj.driveUrl;
-      } else if (photoObj && typeof photoObj === 'object' && photoObj.url) {
-        photoUrl = photoObj.url;
-      }
-
-      document.getElementById('modalPreviewImg').src = typeof photoObj === 'string' ? photoObj : (photoObj.url || photoObj.driveUrl);
-
-      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
-      if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
-
-      const mensaje = encodeURIComponent(`Hola ${active.name}, te enviamos una evidencia de tu ${active.carModel} (${active.plate}) en FAST GARAGE:\n${photoUrl}`);
-      document.getElementById('waDirectBtn').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${mensaje}`;
-
-      document.getElementById('photoViewerModal').classList.remove('hidden');
       lucide.createIcons();
     }
 
-    function closePhotoModal() {
-      document.getElementById('photoViewerModal').classList.add('hidden');
+    // SELECCIÓN MÚLTIPLE DE FOTOS
+    function togglePhotoSelection(idx) {
+      const pos = selectedPhotosIndices.indexOf(idx);
+      if (pos === -1) {
+        selectedPhotosIndices.push(idx);
+      } else {
+        selectedPhotosIndices.splice(pos, 1);
+      }
+      
+      const card = document.getElementById(`photo-card-${idx}`);
+      const check = document.getElementById(`check-${idx}`);
+      const isSelected = selectedPhotosIndices.includes(idx);
+
+      if (card && check) {
+        card.className = `relative rounded-xl overflow-hidden h-24 border cursor-pointer shadow-md active:scale-95 transition-all ${isSelected ? 'border-cyan-400 ring-2 ring-cyan-400' : 'border-slate-700'}`;
+        check.className = `absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-cyan-500 text-black' : 'bg-black/60 text-white border border-white/40'}`;
+      }
+
+      updateSelectionUI();
     }
 
-    function deleteActivePhoto() {
+    function clearPhotoSelection() {
+      selectedPhotosIndices = [];
       const active = clientsData[activeClientIndex];
-      active.photos.splice(selectedPhotoIndex, 1);
-      savePersistentData();
-      renderClientPhotos(active.photos);
-      closePhotoModal();
+      renderClientPhotos(active.photos || []);
+    }
+
+    function updateSelectionUI() {
+      const container = document.getElementById('multiShareContainer');
+      const countLabel = document.getElementById('photoSelectionCount');
+      const cancelBtn = document.getElementById('btnCancelSelect');
+      const btnText = document.getElementById('btnSharePhotosText');
+
+      if (selectedPhotosIndices.length > 0) {
+        container.classList.remove('hidden');
+        cancelBtn.classList.remove('hidden');
+        countLabel.innerText = `${selectedPhotosIndices.length} foto(s) seleccionada(s)`;
+        btnText.innerText = `Enviar ${selectedPhotosIndices.length} foto(s) por WhatsApp`;
+      } else {
+        container.classList.add('hidden');
+        cancelBtn.classList.add('hidden');
+        countLabel.innerText = "Toca las fotos para seleccionarlas";
+      }
+    }
+
+    // 📲 ENVIAR LAS IMÁGENES REALES (ARCHIVOS) POR WHATSAPP MEDIANTE LA API NATIVA
+    async function shareSelectedPhotosViaWhatsApp() {
+      const active = clientsData[activeClientIndex];
+      if (selectedPhotosIndices.length === 0) return;
+
+      showHUD("Preparando fotos para WhatsApp...", true);
+
+      try {
+        const filePromises = selectedPhotosIndices.map(async (idx, i) => {
+          const photoObj = active.photos[idx];
+          const imgSrc = typeof photoObj === 'string' ? photoObj : photoObj.url;
+          
+          const response = await fetch(imgSrc);
+          const blob = await response.blob();
+          return new File([blob], `${active.plate}_foto_${i + 1}.jpg`, { type: 'image/jpeg' });
+        });
+
+        const filesArray = await Promise.all(filePromises);
+        hideHUD();
+
+        if (navigator.canShare && navigator.canShare({ files: filesArray })) {
+          await navigator.share({
+            files: filesArray,
+            title: `FAST GARAGE - ${active.carModel}`,
+            text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
+          });
+        } else {
+          // Fallback en PC / navegadores que no permitan inyectar archivos directos
+          let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
+          if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
+          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las fotos de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
+          window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`, '_blank');
+        }
+      } catch (err) {
+        hideHUD();
+        console.log("Envío cancelado o no soportado:", err);
+      }
     }
 
     function syncInvoiceWithDrive(client) {
@@ -1223,24 +1310,31 @@
       }
     }
 
-    // 🎙️ TRANSCRIPCIÓN EN TIEMPO REAL
+    // 🎙️ DICTADO POR VOZ CORREGIDO (SOLICITA PERMISO ACTIVO AL IPHONE)
     let recognition;
     let isRecording = false;
 
-    function toggleVoiceRecording() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        alert("Tu navegador no soporta transcripción por voz directa. Puedes escribir o usar el micrófono del teclado.");
-        return;
-      }
-
+    async function toggleVoiceRecording() {
       const input = document.getElementById('newNoteInput');
       const btnText = document.getElementById('recordText');
       const btn = document.getElementById('recordBtn');
 
       if (!isRecording) {
         try {
+          showHUD("🎙️ Conectando micrófono...", true);
+
+          // 1. Forzar petición de permiso de micrófono al sistema iOS
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+            hideHUD();
+            stream.getTracks().forEach(t => t.stop());
+            alert("Tu navegador no permite reconocimiento por voz en web. Usa el micrófono del teclado de tu iPhone.");
+            input.focus();
+            return;
+          }
+
           recognition = new SpeechRecognition();
           recognition.lang = 'es-ES';
           recognition.continuous = false;
@@ -1248,7 +1342,7 @@
 
           recognition.onstart = () => {
             isRecording = true;
-            btnText.innerText = "Escuchando...";
+            btnText.innerText = "Parar";
             btn.classList.add("bg-rose-600", "text-white");
             showHUD("🎙️ Habla ahora (Transcribiendo...)", true);
           };
@@ -1261,26 +1355,32 @@
             input.value = transcript;
           };
 
-          recognition.onerror = () => {
+          recognition.onerror = (event) => {
             stopVoiceUI();
             hideHUD();
+            stream.getTracks().forEach(t => t.stop());
+            console.log("Error de dictado:", event);
           };
 
           recognition.onend = () => {
             stopVoiceUI();
             hideHUD();
+            stream.getTracks().forEach(t => t.stop());
+            
             if (input.value.trim().length > 0) {
               sendNoteToGoogleDoc(input.value.trim());
               input.value = '';
-              showHUD("✅ Nota guardada en Doc", false);
+              showHUD("✅ Nota transcrita y guardada en Doc", false);
               setTimeout(hideHUD, 1500);
             }
           };
 
           recognition.start();
+
         } catch (err) {
-          stopVoiceUI();
           hideHUD();
+          stopVoiceUI();
+          alert("Debes permitir el acceso al micrófono en el aviso de tu iPhone para poder dictar.");
         }
       } else {
         if (recognition) recognition.stop();
