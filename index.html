@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Taller Nitro Pro</title>
+  <title>FAST GARAGE - Workshop OS</title>
 
-  <!-- PWA & Iconos iPhone -->
+  <!-- PWA iOS & Iconos -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="NitroTaller">
+  <meta name="apple-mobile-web-app-title" content="FastGarage">
   <link rel="apple-touch-icon" href="icon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
 
   <!-- Tailwind CSS & Lucide Icons -->
@@ -22,17 +21,15 @@
       theme: {
         extend: {
           colors: {
-            nitroBlack: '#060911',
-            nitroCard: '#0d1322',
-            nitroBorder: '#1e293b',
-            neonCyan: '#00f2fe',
-            neonBlue: '#4facfe',
-            neonGreen: '#00f5a0',
-            neonFlame: '#ff3366',
-            neonAmber: '#ffaa00'
-          },
-          backgroundImage: {
-            'carbon-pattern': 'radial-gradient(#1e293b 1px, transparent 1px)',
+            fgDark: '#07090e',
+            fgCard: '#0f1422',
+            fgCardBorder: '#1c263c',
+            fgMetal: '#2b384e',
+            fgCyan: '#00d2ff',
+            fgBlue: '#0066ff',
+            fgGreen: '#00f59b',
+            fgRed: '#ff2d55',
+            fgAmber: '#ffaa00'
           }
         }
       }
@@ -40,336 +37,324 @@
   </script>
   <style>
     body {
-      background-color: #060911;
+      background-color: #06080d;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      background-image: radial-gradient(rgba(30, 41, 59, 0.35) 1px, transparent 1px);
+      background-size: 16px 16px;
     }
-    .neon-cyan-glow {
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+    .carbon-card {
+      background: linear-gradient(160deg, #131a2b 0%, #0a0e17 100%);
+      border: 1px solid rgba(0, 210, 255, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.1);
     }
-    .neon-card {
-      background: linear-gradient(145deg, rgba(13,19,34,0.9) 0%, rgba(8,12,22,0.95) 100%);
-      border: 1px solid rgba(0, 242, 254, 0.15);
+    .metal-badge {
+      background: linear-gradient(180deg, #2a374d 0%, #141c2b 100%);
+      border: 1px solid #3d4f6e;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0,0,0,0.5);
     }
-    .badge-glow-red {
-      box-shadow: 0 0 10px rgba(255, 51, 102, 0.4);
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.35);
     }
-    .badge-glow-green {
-      box-shadow: 0 0 10px rgba(0, 245, 160, 0.4);
+    .glow-red {
+      box-shadow: 0 0 12px rgba(255, 45, 85, 0.4);
+    }
+    .glow-green {
+      box-shadow: 0 0 12px rgba(0, 245, 155, 0.4);
     }
   </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-28 select-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-nitroBlack to-black">
+<body class="text-slate-100 min-h-screen pb-28 select-none">
 
-  <!-- ================= TOP BAR ================= -->
-  <header class="sticky top-0 z-40 bg-nitroBlack/80 backdrop-blur-xl border-b border-cyan-950/40 px-5 pt-12 pb-3 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-neonCyan to-neonBlue p-[1px] flex items-center justify-center">
-        <div class="w-full h-full bg-nitroBlack rounded-lg flex items-center justify-center">
-          <i data-lucide="gauge" class="w-4 h-4 text-neonCyan"></i>
-        </div>
+  <!-- ================= TOP BAR FAST GARAGE ================= -->
+  <header class="sticky top-0 z-40 bg-[#07090e]/90 backdrop-blur-xl border-b border-cyan-950/60 px-5 pt-12 pb-3.5 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl metal-badge flex items-center justify-center p-0.5 border border-cyan-500/30">
+        <i data-lucide="wrench" class="w-4 h-4 text-fgCyan"></i>
       </div>
       <div>
-        <h1 class="text-xs font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-neonCyan to-neonBlue uppercase">NITRO GARAGE</h1>
-        <p class="text-[9px] text-slate-500 font-mono tracking-tighter">PERFORMANCE & REPAIR OS</p>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm font-black tracking-widest text-white italic">FAST</span>
+          <span class="text-sm font-black tracking-widest text-fgCyan italic">GARAGE</span>
+        </div>
+        <p class="text-[9px] font-mono text-slate-500 tracking-wider">HIGH PERFORMANCE OS</p>
       </div>
     </div>
     
-    <div id="headerActions">
-      <!-- Botón dinámico según pantalla -->
-      <button onclick="toggleNewClientModal()" class="px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-neonCyan/40 text-neonCyan text-xs font-bold flex items-center gap-1.5">
-        <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Nuevo</span> Coche
-      </button>
-    </div>
+    <button onclick="toggleNewClientModal()" class="metal-badge hover:border-fgCyan px-3 py-1.5 rounded-xl text-fgCyan text-xs font-bold flex items-center gap-1.5 transition-all">
+      <i data-lucide="plus-circle" class="w-4 h-4 text-fgCyan"></i> <span>Alta Coche</span>
+    </button>
   </header>
 
-  <!-- ================= VISTA 1: INICIO (PIT LANE / CALENDARIO / TAREAS) ================= -->
+  <!-- ================= TAB 1: INICIO (PIT LANE / CALENDARIO / TAREAS) ================= -->
   <section id="viewInicio" class="max-w-md mx-auto px-4 mt-4 space-y-4">
     
-    <!-- STATS METRICS BAR -->
+    <!-- TELEMETRY GAUGE BAR -->
     <div class="grid grid-cols-3 gap-2">
-      <div class="neon-card rounded-2xl p-3 text-center border-l-2 border-l-neonCyan">
-        <span class="text-[10px] text-slate-400 font-medium">EN TALLER</span>
-        <p class="text-xl font-black text-white mt-0.5">4</p>
+      <div class="carbon-card rounded-2xl p-3 text-center border-t-2 border-t-fgCyan">
+        <span class="text-[10px] text-slate-400 font-bold tracking-wider">BOXES ACTIVOS</span>
+        <p class="text-xl font-black text-white font-mono mt-0.5">4</p>
       </div>
-      <div class="neon-card rounded-2xl p-3 text-center border-l-2 border-l-neonFlame">
-        <span class="text-[10px] text-slate-400 font-medium">URGENTES</span>
-        <p class="text-xl font-black text-neonFlame mt-0.5">2</p>
+      <div class="carbon-card rounded-2xl p-3 text-center border-t-2 border-t-fgRed">
+        <span class="text-[10px] text-slate-400 font-bold tracking-wider">URGENTES</span>
+        <p class="text-xl font-black text-fgRed font-mono mt-0.5">2</p>
       </div>
-      <div class="neon-card rounded-2xl p-3 text-center border-l-2 border-l-neonAmber">
-        <span class="text-[10px] text-slate-400 font-medium">RECAMBIOS</span>
-        <p class="text-xl font-black text-neonAmber mt-0.5" id="statsPendingParts">3</p>
+      <div class="carbon-card rounded-2xl p-3 text-center border-t-2 border-t-fgAmber">
+        <span class="text-[10px] text-slate-400 font-bold tracking-wider">PEDIDOS</span>
+        <p class="text-xl font-black text-fgAmber font-mono mt-0.5" id="statsParts">3</p>
       </div>
     </div>
 
+    <!-- ORDENES DE TRABAJO -->
     <div class="flex justify-between items-center pt-2">
-      <h2 class="text-xs font-bold tracking-widest text-slate-400 uppercase flex items-center gap-1.5">
-        <i data-lucide="flame" class="w-4 h-4 text-neonFlame"></i> COCHES EN BOXES (ORDEN DE TRABAJO)
+      <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase flex items-center gap-1.5">
+        <i data-lucide="gauge" class="w-4 h-4 text-fgCyan"></i> ÓRDENES DE TRABAJO (PIT LANE)
       </h2>
-      <span class="text-[10px] text-slate-500 font-mono">HOY</span>
+      <span class="text-[10px] font-mono text-fgCyan bg-cyan-950/40 border border-cyan-800/40 px-2 py-0.5 rounded-full">EN VIVO</span>
     </div>
 
-    <!-- LISTA DE COCHES EN PISTA / TAREAS -->
-    <div class="space-y-3" id="timelineList">
+    <div class="space-y-3" id="pitlaneList">
       
       <!-- Coche 1 -->
-      <div onclick="openClientDetail(0)" class="neon-card rounded-2xl p-4 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden group">
-        <div class="absolute -right-10 -bottom-10 w-28 h-28 bg-neonCyan/5 rounded-full blur-xl group-hover:bg-neonCyan/15 transition-all"></div>
+      <div onclick="openClientDetail(0)" class="carbon-card rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-all">
         <div class="flex justify-between items-start mb-2">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-neonFlame/15 text-neonFlame border border-neonFlame/30 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-neonFlame animate-ping"></span> 🔥 URGENTE ENTREGA
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-fgRed/15 text-fgRed border border-fgRed/40 flex items-center gap-1 glow-red">
+            <span class="w-1.5 h-1.5 rounded-full bg-fgRed animate-ping"></span> 🔥 URGENTE ENTREGA
           </span>
-          <span class="text-[11px] font-mono font-bold text-neonCyan bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-800/40">CA 458-7X</span>
+          <span class="text-xs font-mono font-bold text-fgCyan metal-badge px-2 py-0.5 rounded-lg">CA 458-7X</span>
         </div>
-        <h3 class="font-extrabold text-white text-base">Audi R8 V10 Spyder</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Sarah J. Chen · <span class="text-slate-300">Cambio Embrague cerámico + Aceite</span></p>
-        <div class="mt-3 pt-3 border-t border-slate-800/80 flex justify-between items-center text-[11px]">
-          <span class="text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Piezas en taller</span>
-          <span class="text-slate-400 font-mono">Entrada: 08:30 AM</span>
+        <h3 class="font-black text-white text-base">Audi R8 V10 Spyder</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Sarah J. Chen · <span class="text-slate-300 font-medium">Embrague + Mantenimiento Pro</span></p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex justify-between items-center text-[11px] font-mono">
+          <span class="text-fgGreen flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Piezas en taller</span>
+          <span class="text-slate-500">Box 01</span>
         </div>
       </div>
 
       <!-- Coche 2 -->
-      <div onclick="openClientDetail(1)" class="neon-card rounded-2xl p-4 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
+      <div onclick="openClientDetail(1)" class="carbon-card rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-all">
         <div class="flex justify-between items-start mb-2">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-neonAmber/15 text-neonAmber border border-neonAmber/30 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-neonAmber"></span> ⚠️ ESPERANDO RECAMBIO
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-fgAmber/15 text-fgAmber border border-fgAmber/40 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-fgAmber"></span> ⚠️ ESPERANDO RECAMBIO
           </span>
-          <span class="text-[11px] font-mono font-bold text-neonCyan bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-800/40">DOM-1970</span>
+          <span class="text-xs font-mono font-bold text-fgCyan metal-badge px-2 py-0.5 rounded-lg">DOM-1970</span>
         </div>
-        <h3 class="font-extrabold text-white text-base">Dodge Charger 1970 R/T</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Dominic T. · <span class="text-slate-300">Instalación Supercharger Blower</span></p>
-        <div class="mt-3 pt-3 border-t border-slate-800/80 flex justify-between items-center text-[11px]">
-          <span class="text-rose-400 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> 1 Pieza pendiente compra</span>
-          <span class="text-slate-400 font-mono">Entrada: Ayer</span>
-        </div>
-      </div>
-
-      <!-- Coche 3 -->
-      <div onclick="openClientDetail(2)" class="neon-card rounded-2xl p-4 active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
-        <div class="flex justify-between items-start mb-2">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-neonGreen border border-emerald-500/30 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-neonGreen"></span> EN PROCESO (ELEVADOR 2)
-          </span>
-          <span class="text-[11px] font-mono font-bold text-neonCyan bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-800/40">991-GT3</span>
-        </div>
-        <h3 class="font-extrabold text-white text-base">Porsche 911 GT3 RS</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Carlos Sainz · <span class="text-slate-300">Pastillas carbono + Alineación láser</span></p>
-        <div class="mt-3 pt-3 border-t border-slate-800/80 flex justify-between items-center text-[11px]">
-          <span class="text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Listo para montar</span>
-          <span class="text-slate-400 font-mono">Entrada: 11:00 AM</span>
+        <h3 class="font-black text-white text-base">Dodge Charger R/T 1970</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Dominic Toretto · <span class="text-slate-300 font-medium">Supercharger Blower 8-71</span></p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex justify-between items-center text-[11px] font-mono">
+          <span class="text-fgRed flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> 1 Pieza en camino</span>
+          <span class="text-slate-500">Box 03</span>
         </div>
       </div>
 
     </div>
   </section>
 
-  <!-- ================= VISTA 2: CLIENTES (DIRECTORIO) ================= -->
+  <!-- ================= TAB 2: CLIENTES (GARAJE Y FICHAS) ================= -->
   <section id="viewClientes" class="max-w-md mx-auto px-4 mt-4 space-y-4 hidden">
     
-    <!-- Buscador -->
+    <!-- BUSCADOR -->
     <div class="relative">
-      <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
-      <input type="text" id="searchClientInput" onkeyup="filterClients()" placeholder="Buscar por cliente, coche o matrícula..." class="w-full bg-nitroCard border border-slate-800 focus:border-neonCyan rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none">
+      <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5"></i>
+      <input type="text" id="searchClientInput" onkeyup="filterClients()" placeholder="Buscar por matrícula, coche o cliente..." class="w-full bg-fgCard border border-slate-800 focus:border-fgCyan rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none">
     </div>
 
-    <!-- Lista de Clientes -->
-    <div class="space-y-3" id="clientsDirectoryList">
-      <!-- Se inyecta dinámicamente -->
-    </div>
+    <!-- LISTA DE VEHÍCULOS -->
+    <div class="space-y-3" id="clientsListContainer"></div>
   </section>
 
-  <!-- ================= VISTA 2.1: DETALLE / FICHA DE CLIENTE ================= -->
+  <!-- ================= DETALLE CLIENTE 360° (DRIVE SYNC) ================= -->
   <section id="viewClienteDetalle" class="max-w-md mx-auto px-4 mt-2 space-y-4 hidden">
     
-    <button onclick="switchTab('clientes')" class="text-xs text-neonCyan flex items-center gap-1 py-1 font-semibold">
-      <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Clientes
+    <button onclick="switchTab('clientes')" class="text-xs text-fgCyan flex items-center gap-1 py-1 font-bold">
+      <i data-lucide="chevron-left" class="w-4 h-4"></i> Volver al Garaje
     </button>
 
-    <!-- CLIENT AVATAR & VEHICLE CARD -->
-    <div class="neon-card rounded-2xl p-4 flex items-center space-x-4 border-l-4 border-l-neonCyan">
-      <div class="w-16 h-16 rounded-xl overflow-hidden border border-cyan-500/40 relative">
-        <img id="detailCarImg" src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200" class="w-full h-full object-cover" alt="Car">
-      </div>
-      <div class="flex-1">
-        <div class="flex justify-between items-start">
-          <h2 id="detailClientName" class="text-base font-black text-white">SARAH J. CHEN</h2>
-          <span id="detailPlate" class="text-xs font-mono font-bold bg-neonCyan/10 border border-neonCyan/30 text-neonCyan px-2 py-0.5 rounded">CA 458-7X</span>
+    <!-- VEHICLE HERO BADGE -->
+    <div class="carbon-card rounded-2xl p-4 border-l-4 border-l-fgCyan">
+      <div class="flex justify-between items-start">
+        <div>
+          <span id="detailPlate" class="text-xs font-mono font-black text-fgCyan metal-badge px-2.5 py-0.5 rounded-md">CA 458-7X</span>
+          <h2 id="detailCarModel" class="text-base font-black text-white mt-1">Audi R8 V10 Spyder</h2>
+          <p id="detailClientName" class="text-xs text-slate-400 font-semibold">Sarah J. Chen</p>
         </div>
-        <p id="detailCarModel" class="text-xs text-slate-300 font-semibold mt-0.5">Audi R8 V10 Spyder</p>
-        <p id="detailPhone" class="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
-          <i data-lucide="phone" class="w-3 h-3 text-neonGreen"></i> +34 622 889 900
-        </p>
+        <a id="detailDriveFolderBtn" href="#" target="_blank" class="metal-badge hover:border-fgCyan p-2 rounded-xl text-fgCyan" title="Abrir Carpeta en Google Drive">
+          <i data-lucide="folder-symlink" class="w-4 h-4"></i>
+        </a>
+      </div>
+      <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex justify-between text-xs font-mono text-slate-400">
+        <span id="detailPhone" class="flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3 text-fgGreen"></i> +34 622 889 900</span>
+        <span class="text-fgGreen font-bold">En Reparación</span>
       </div>
     </div>
 
-    <!-- SUB-TABS: FOTOS, FACTURACIÓN / COSTES, NOTAS -->
-    <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs text-center font-bold">
-      <button onclick="showDetailTab('fotos')" id="subtab-fotos" class="py-2 rounded-lg bg-cyan-950/80 text-neonCyan border border-cyan-500/30">
-        📸 FOTOS
-      </button>
-      <button onclick="showDetailTab('costes')" id="subtab-costes" class="py-2 rounded-lg text-slate-400 hover:text-white">
-        💰 COSTES/PVP
-      </button>
-      <button onclick="showDetailTab('bitacora')" id="subtab-bitacora" class="py-2 rounded-lg text-slate-400 hover:text-white">
-        🎙️ BITÁCORA
-      </button>
+    <!-- SUBTABS -->
+    <div class="grid grid-cols-3 gap-1.5 metal-badge p-1 rounded-xl text-xs font-bold text-center">
+      <button onclick="showSubTab('fotos')" id="subtab-fotos" class="py-2 rounded-lg bg-cyan-950/80 text-fgCyan border border-fgCyan/40">📸 FOTOS</button>
+      <button onclick="showSubTab('costes')" id="subtab-costes" class="py-2 rounded-lg text-slate-400 hover:text-white">💰 FACTURA</button>
+      <button onclick="showSubTab('bitacora')" id="subtab-bitacora" class="py-2 rounded-lg text-slate-400 hover:text-white">🎙️ NOTAS</button>
     </div>
 
-    <!-- PANEL SUBTAB: FOTOS -->
-    <div id="subpanel-fotos" class="neon-card rounded-2xl p-4 space-y-3">
+    <!-- PANEL: FOTOS (SUBIDA DIRECTA A GDRIVE) -->
+    <div id="subpanel-fotos" class="carbon-card rounded-2xl p-4 space-y-3">
       <div class="flex justify-between items-center">
-        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Drive Sync · FOTOS</span>
-        <label class="cursor-pointer bg-cyan-500/10 hover:bg-cyan-500/20 text-neonCyan text-xs px-2.5 py-1.5 rounded-lg border border-cyan-500/40 flex items-center gap-1 font-bold">
-          <i data-lucide="camera" class="w-3.5 h-3.5"></i> Sacar Foto
+        <div>
+          <span class="text-xs font-black text-white uppercase tracking-wider block">Fotos de Evidencia</span>
+          <span class="text-[10px] text-slate-400">Se guardan directo en Drive "FOTOS"</span>
+        </div>
+        <label class="cursor-pointer metal-badge hover:border-fgCyan text-fgCyan text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold transition-all">
+          <i data-lucide="camera" class="w-4 h-4"></i> Sacar Foto
           <input type="file" accept="image/*" capture="environment" class="hidden" onchange="uploadPhotoToDrive(event)">
         </label>
       </div>
-      <div id="photosGrid" class="grid grid-cols-3 gap-2">
-        <img class="rounded-lg h-20 w-full object-cover border border-slate-700" src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=200">
-        <img class="rounded-lg h-20 w-full object-cover border border-slate-700" src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=200">
-        <div class="h-20 rounded-lg border border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1">
-          <i data-lucide="cloud-upload" class="w-4 h-4 mb-1 text-neonCyan"></i> Auto Sync Drive
+
+      <div id="photosGrid" class="grid grid-cols-3 gap-2 pt-1">
+        <img class="rounded-xl h-20 w-full object-cover border border-slate-800" src="https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=200">
+        <img class="rounded-xl h-20 w-full object-cover border border-slate-800" src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=200">
+        <div class="h-20 rounded-xl border border-dashed border-slate-800 flex flex-col items-center justify-center text-slate-600 text-[10px] text-center p-1 font-mono">
+          <i data-lucide="cloud" class="w-4 h-4 mb-1 text-fgCyan"></i> Drive Sync
         </div>
       </div>
     </div>
 
-    <!-- PANEL SUBTAB: COSTES & MANO DE OBRA -->
-    <div id="subpanel-costes" class="neon-card rounded-2xl p-4 space-y-3 hidden">
+    <!-- PANEL: COSTES & MANO DE OBRA (GOOGLE SHEET) -->
+    <div id="subpanel-costes" class="carbon-card rounded-2xl p-4 space-y-3 hidden">
       <div class="flex justify-between items-center">
-        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Desglose de Recambios</span>
-        <button onclick="promptAddPartModal()" class="text-xs bg-cyan-500/20 border border-neonCyan/40 text-neonCyan font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
-          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Añadir Pieza
+        <div>
+          <span class="text-xs font-black text-white uppercase tracking-wider block">Recambios y Costes</span>
+          <span class="text-[10px] text-slate-400 font-mono">Sincronizado con Excel / Sheet</span>
+        </div>
+        <button onclick="promptAddPartModal()" class="metal-badge text-fgCyan text-xs px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Añadir Pieza
         </button>
       </div>
 
-      <!-- Tabla Recambios con Precio Compra vs PVP -->
       <div class="overflow-x-auto">
         <table class="w-full text-[11px] text-left">
-          <thead class="text-slate-500 border-b border-slate-800 font-mono">
+          <thead class="text-slate-400 border-b border-slate-800 font-mono text-[10px]">
             <tr>
-              <th class="pb-1">CONCEPTO</th>
-              <th class="pb-1 text-center">CANT</th>
-              <th class="pb-1 text-right">COMPRA</th>
-              <th class="pb-1 text-right">VENTA(PVP)</th>
+              <th class="pb-1.5">ITEM</th>
+              <th class="pb-1.5 text-center">CANT</th>
+              <th class="pb-1.5 text-right">COMPRA</th>
+              <th class="pb-1.5 text-right text-fgCyan">PVP CLIENTE</th>
             </tr>
           </thead>
-          <tbody id="clientPartsTable" class="divide-y divide-slate-800/60 text-slate-300 font-mono">
+          <tbody id="partsTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
             <tr>
               <td class="py-2 text-white font-sans">Kit Embrague Cerámico</td>
               <td class="py-2 text-center">1</td>
               <td class="py-2 text-right text-slate-400">450 €</td>
-              <td class="py-2 text-right text-neonCyan font-bold">690 €</td>
+              <td class="py-2 text-right text-fgCyan font-bold">690 €</td>
             </tr>
             <tr>
-              <td class="py-2 text-white font-sans">Aceite Motul 300V 5W40</td>
+              <td class="py-2 text-white font-sans">Aceite Sintético 5W40</td>
               <td class="py-2 text-center">8 L</td>
               <td class="py-2 text-right text-slate-400">95 €</td>
-              <td class="py-2 text-right text-neonCyan font-bold">160 €</td>
+              <td class="py-2 text-right text-fgCyan font-bold">160 €</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- SECCIÓN MANO DE OBRA -->
-      <div class="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
+      <!-- MANO DE OBRA -->
+      <div class="mt-2 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 flex justify-between items-center font-mono">
         <div>
-          <span class="text-xs font-bold text-white block">Mano de Obra</span>
-          <span class="text-[10px] text-slate-400">5.5 horas x 60 €/hr</span>
+          <span class="text-xs font-bold text-white font-sans block">Mano de Obra Especializada</span>
+          <span class="text-[10px] text-slate-400">5.5 horas @ 60 €/h</span>
         </div>
-        <span class="text-xs font-mono font-bold text-neonCyan">330.00 €</span>
+        <span class="text-xs font-bold text-fgCyan">330.00 €</span>
       </div>
 
-      <!-- TOTAL & BENEFICIO ESTIMADO -->
-      <div class="pt-2 flex justify-between items-center border-t border-cyan-900/40">
+      <!-- TOTALES -->
+      <div class="pt-2 border-t border-slate-800 flex justify-between items-center font-mono">
         <div>
-          <span class="text-[10px] text-slate-400 uppercase font-mono block">Margen Taller</span>
-          <span class="text-xs font-black text-neonGreen font-mono">+ 635.00 €</span>
+          <span class="text-[9px] text-slate-400 uppercase block">Margen Ganancia Taller</span>
+          <span class="text-xs font-black text-fgGreen">+ 635.00 €</span>
         </div>
         <div class="text-right">
-          <span class="text-[10px] text-slate-400 uppercase font-mono block">TOTAL CLIENTE (PVP)</span>
-          <span class="text-base font-black text-neonCyan font-mono">1,180.00 €</span>
+          <span class="text-[9px] text-slate-400 uppercase block">TOTAL FACTURA (PVP)</span>
+          <span class="text-base font-black text-fgCyan">1,180.00 €</span>
         </div>
       </div>
     </div>
 
-    <!-- PANEL SUBTAB: BITÁCORA / NOTAS VOZ -->
-    <div id="subpanel-bitacora" class="neon-card rounded-2xl p-4 space-y-3 hidden">
+    <!-- PANEL: BITÁCORA / NOTAS DE VOZ (GOOGLE DOC) -->
+    <div id="subpanel-bitacora" class="carbon-card rounded-2xl p-4 space-y-3 hidden">
       <div class="flex justify-between items-center">
-        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Bitácora Doc</span>
-        <button id="recordBtn" onclick="toggleVoiceRecording()" class="bg-rose-500/15 border border-neonFlame/40 text-neonFlame text-xs px-3 py-1 rounded-lg flex items-center gap-1.5 font-bold">
+        <div>
+          <span class="text-xs font-black text-white uppercase tracking-wider block">Bitácora Doc</span>
+          <span class="text-[10px] text-slate-400">Dictado guardado en Google Doc</span>
+        </div>
+        <button id="recordBtn" onclick="toggleVoiceRecording()" class="metal-badge border-fgRed/40 text-fgRed text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold glow-red">
           <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span id="recordText">Grabar Audio</span>
         </button>
       </div>
 
-      <div id="notesContainer" class="space-y-2">
+      <div id="notesFeed" class="space-y-2">
         <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300">
           <div class="flex justify-between text-[10px] font-mono text-slate-500 mb-1">
-            <span class="text-neonCyan">Mecánico Jefe (Voz transcrita)</span>
-            <span>10:14 AM</span>
+            <span class="text-fgCyan">Mecánico Jefe (Audio Transcrito)</span>
+            <span>Hoy 10:14 AM</span>
           </div>
-          "Revisado el volante bimasa, no presenta holgura excesiva. Procedemos al montaje del embrague nuevo y purgado del circuito hidráulico."
+          "Revisado el volante bimasa, no presenta holgura excesiva. Procedemos al montaje del embrague nuevo y purgado del circuito."
         </div>
       </div>
     </div>
 
   </section>
 
-  <!-- ================= VISTA 3: COMPRAS (RECAMBIOS PENDIENTES & GESTIÓN) ================= -->
+  <!-- ================= TAB 3: COMPRAS (GESTIÓN DE RECAMBIOS) ================= -->
   <section id="viewCompras" class="max-w-md mx-auto px-4 mt-4 space-y-4 hidden">
     
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-xs font-black tracking-widest text-slate-400 uppercase">PEDIDOS & RECAMBIOS</h2>
-        <p class="text-[10px] text-slate-500">Pulsa el círculo para marcar como comprado</p>
+        <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase">PEDIDOS & RECAMBIOS</h2>
+        <p class="text-[10px] text-slate-500 font-mono">Toca el círculo: 🔴 Pendiente $\rightarrow$ 🟢 Comprado</p>
       </div>
-      <button onclick="promptQuickPart()" class="text-xs bg-neonAmber/15 border border-neonAmber/40 text-neonAmber font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+      <button onclick="promptQuickPart()" class="metal-badge text-fgAmber text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i> Pedir Pieza
       </button>
     </div>
 
-    <!-- LISTA DE RECAMBIOS -->
-    <div class="space-y-2.5" id="purchasesListContainer">
-      <!-- Inyectado por JS -->
-    </div>
+    <div class="space-y-2.5" id="purchasesContainer"></div>
   </section>
 
-
   <!-- ================= BOTTOM NAVIGATION BAR (3 BOTONES EXACTOS) ================= -->
-  <nav class="fixed bottom-0 inset-x-0 bg-nitroBlack/90 backdrop-blur-xl border-t border-slate-800/80 py-2.5 px-6 flex justify-around items-center z-50">
+  <nav class="fixed bottom-0 inset-x-0 bg-[#07090e]/95 backdrop-blur-xl border-t border-slate-800/80 py-2.5 px-6 flex justify-around items-center z-50">
     
-    <!-- Botón 1: Inicio -->
-    <button onclick="switchTab('inicio')" id="nav-inicio" class="flex flex-col items-center gap-1 text-neonCyan transition-all">
-      <div class="p-1 rounded-xl bg-cyan-950/50">
-        <i data-lucide="calendar-check" class="w-5 h-5"></i>
+    <!-- 1. Inicio -->
+    <button onclick="switchTab('inicio')" id="nav-inicio" class="flex flex-col items-center gap-1 text-fgCyan transition-all">
+      <div class="p-1 rounded-xl bg-cyan-950/50 border border-cyan-500/30">
+        <i data-lucide="gauge" class="w-5 h-5"></i>
       </div>
-      <span class="text-[10px] font-bold tracking-wide">Inicio</span>
+      <span class="text-[10px] font-bold tracking-wider">Inicio</span>
     </button>
 
-    <!-- Botón 2: Clientes -->
-    <button onclick="switchTab('clientes')" id="nav-clientes" class="flex flex-col items-center gap-1 text-slate-500 hover:text-neonCyan transition-all">
+    <!-- 2. Clientes -->
+    <button onclick="switchTab('clientes')" id="nav-clientes" class="flex flex-col items-center gap-1 text-slate-500 hover:text-fgCyan transition-all">
       <div class="p-1 rounded-xl">
         <i data-lucide="users" class="w-5 h-5"></i>
       </div>
-      <span class="text-[10px] font-bold tracking-wide">Clientes</span>
+      <span class="text-[10px] font-bold tracking-wider">Clientes</span>
     </button>
 
-    <!-- Botón 3: Compras -->
-    <button onclick="switchTab('compras')" id="nav-compras" class="flex flex-col items-center gap-1 text-slate-500 hover:text-neonCyan transition-all relative">
+    <!-- 3. Compras -->
+    <button onclick="switchTab('compras')" id="nav-compras" class="flex flex-col items-center gap-1 text-slate-500 hover:text-fgCyan transition-all relative">
       <div class="p-1 rounded-xl">
         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
       </div>
-      <span id="badgePendingNav" class="absolute top-1 right-3 w-2 h-2 rounded-full bg-neonFlame animate-ping"></span>
-      <span class="text-[10px] font-bold tracking-wide">Compras</span>
+      <span id="badgePendingNav" class="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-fgRed animate-ping"></span>
+      <span class="text-[10px] font-bold tracking-wider">Compras</span>
     </button>
 
   </nav>
 
-  <!-- ================= MODAL: NUEVO CLIENTE (DRIVE SYNC) ================= -->
+  <!-- ================= MODAL: ALTA DE CLIENTE ================= -->
   <div id="newClientModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="neon-card rounded-3xl w-full max-w-sm p-5 space-y-4 border border-neonCyan/40 neon-cyan-glow">
+    <div class="carbon-card rounded-3xl w-full max-w-sm p-5 space-y-4 border border-cyan-500/40 glow-cyan">
+      
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="text-xs font-black text-neonCyan uppercase tracking-wider flex items-center gap-1.5">
+        <h3 class="text-xs font-black text-fgCyan uppercase tracking-wider flex items-center gap-1.5">
           <i data-lucide="car" class="w-4 h-4"></i> Alta de Vehículo en Taller
         </h3>
         <button onclick="toggleNewClientModal()" class="text-slate-400 hover:text-white">
@@ -377,44 +362,45 @@
         </button>
       </div>
 
-      <!-- Botón Agenda iPhone -->
-      <button type="button" onclick="getContactFromPhone()" class="w-full py-2 bg-cyan-950/60 border border-neonCyan/40 hover:bg-cyan-900/60 text-neonCyan rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-        <i data-lucide="contact" class="w-4 h-4"></i> Importar de Contactos iPhone
+      <!-- BOTÓN IMPORTAR CONTACTO IPHONE -->
+      <button type="button" onclick="getContactFromPhone()" class="w-full py-2 metal-badge text-fgCyan hover:border-fgCyan rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+        <i data-lucide="contact" class="w-4 h-4"></i> Importar de Agenda iPhone
       </button>
 
       <div class="space-y-2.5 text-xs">
         <div>
-          <label class="text-slate-400 font-medium">Nombre del Propietario</label>
-          <input id="newClientName" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-neonCyan rounded-xl p-2.5 text-white mt-1 outline-none font-semibold" placeholder="Ej. Dominic Toretto">
+          <label class="text-slate-400 font-semibold">Propietario / Cliente</label>
+          <input id="newClientName" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-fgCyan rounded-xl p-2.5 text-white mt-1 outline-none" placeholder="Nombre completo">
         </div>
         <div>
-          <label class="text-slate-400 font-medium">Vehículo y Motor</label>
-          <input id="newCarModel" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-neonCyan rounded-xl p-2.5 text-white mt-1 outline-none font-semibold" placeholder="Ej. Dodge Charger 1970 7.2L V8">
+          <label class="text-slate-400 font-semibold">Vehículo y Modelo</label>
+          <input id="newCarModel" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-fgCyan rounded-xl p-2.5 text-white mt-1 outline-none" placeholder="Ej. Dodge Charger 1970 R/T">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-slate-400 font-medium">Matrícula</label>
-            <input id="newPlate" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-neonCyan rounded-xl p-2.5 text-white mt-1 outline-none uppercase font-mono font-bold" placeholder="DOM-1970">
+            <label class="text-slate-400 font-semibold">Matrícula</label>
+            <input id="newPlate" type="text" class="w-full bg-slate-950 border border-slate-800 focus:border-fgCyan rounded-xl p-2.5 text-white mt-1 outline-none uppercase font-mono font-bold" placeholder="1234-LMN">
           </div>
           <div>
-            <label class="text-slate-400 font-medium">Teléfono</label>
-            <input id="newPhone" type="tel" class="w-full bg-slate-950 border border-slate-800 focus:border-neonCyan rounded-xl p-2.5 text-white mt-1 outline-none font-mono" placeholder="+34 600...">
+            <label class="text-slate-400 font-semibold">Teléfono</label>
+            <input id="newPhone" type="tel" class="w-full bg-slate-950 border border-slate-800 focus:border-fgCyan rounded-xl p-2.5 text-white mt-1 outline-none font-mono" placeholder="+34 600...">
           </div>
         </div>
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button onclick="toggleNewClientModal()" class="flex-1 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-bold">Cancelar</button>
-        <button onclick="submitNewClient()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-neonCyan to-neonBlue text-slate-950 font-black text-xs uppercase tracking-wider">Crear en Drive</button>
+        <button onclick="toggleNewClientModal()" class="flex-1 py-2.5 rounded-xl metal-badge text-slate-400 text-xs font-bold">Cancelar</button>
+        <button onclick="submitNewClient()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-fgCyan to-fgBlue text-slate-950 font-black text-xs uppercase tracking-wider glow-cyan">Crear en Drive</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT APP ENGINE ================= -->
+  <!-- ================= LOGICA JAVASCRIPT ================= -->
   <script>
+    // URL DE TU APPS SCRIPT PUBLICADO (Reemplaza con tu URL /exec si es distinta)
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxITvbcWWuXRkEpyWSfguEzPsx1NESw3fG4h7QxSbt3G5Gc12QBt_JlpdJ05dcaieCX_w/exec";
 
-    // BASE DE DATOS LOCAL REACTIVA
+    // ESTADO LOCAL DE CLIENTES Y COMPRAS
     let clientsData = [
       {
         id: "1",
@@ -422,9 +408,7 @@
         carModel: "Audi R8 V10 Spyder",
         plate: "CA 458-7X",
         phone: "+34 622 889 900",
-        urgency: "urgent",
-        status: "En Proceso",
-        img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200",
+        folderUrl: "https://drive.google.com",
         photosFolderId: "",
         costSheetId: "",
         docId: ""
@@ -432,25 +416,10 @@
       {
         id: "2",
         name: "Dominic Toretto",
-        carModel: "Dodge Charger 1970 R/T",
+        carModel: "Dodge Charger R/T 1970",
         plate: "DOM-1970",
         phone: "+34 611 000 777",
-        urgency: "parts",
-        status: "Esperando Piezas",
-        img: "https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?w=200",
-        photosFolderId: "",
-        costSheetId: "",
-        docId: ""
-      },
-      {
-        id: "3",
-        name: "Carlos Sainz",
-        carModel: "Porsche 911 GT3 RS",
-        plate: "991-GT3",
-        phone: "+34 699 333 444",
-        urgency: "normal",
-        status: "En Elevador",
-        img: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=200",
+        folderUrl: "https://drive.google.com",
         photosFolderId: "",
         costSheetId: "",
         docId: ""
@@ -458,150 +427,154 @@
     ];
 
     let purchasesData = [
-      { id: 101, part: "Supercharger Blower 8-71", client: "Dominic T.", plate: "DOM-1970", bought: false, cost: "1,450 €" },
-      { id: 102, part: "Kit Embrague Cerámico", client: "Sarah J.", plate: "CA 458-7X", bought: true, cost: "450 €" },
-      { id: 103, part: "Pastillas Carbono Delanteras", client: "Carlos S.", plate: "991-GT3", bought: false, cost: "320 €" }
+      { id: 101, part: "Supercharger Blower 8-71", client: "Dominic Toretto", plate: "DOM-1970", bought: false, cost: "1,450 €" },
+      { id: 102, part: "Kit Embrague Cerámico", client: "Sarah J. Chen", plate: "CA 458-7X", bought: true, cost: "450 €" },
+      { id: 103, part: "Pastillas Carbono Delanteras", client: "Carlos Sainz", plate: "991-GT3", bought: false, cost: "320 €" }
     ];
 
     let activeClientIndex = 0;
 
-    // INICIALIZACIÓN
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      renderClientsDirectory();
+      renderClientsList();
       renderPurchasesList();
     });
 
-    // SISTEMA DE NAVEGACIÓN ENTRE LAS 3 PESTAÑAS
+    // SISTEMA DE NAVEGACIÓN (3 PESTAÑAS)
     function switchTab(tab) {
       document.getElementById('viewInicio').classList.add('hidden');
       document.getElementById('viewClientes').classList.add('hidden');
       document.getElementById('viewClienteDetalle').classList.add('hidden');
       document.getElementById('viewCompras').classList.add('hidden');
 
-      // Reset iconos
       ['inicio', 'clientes', 'compras'].forEach(t => {
         const btn = document.getElementById(`nav-${t}`);
-        btn.classList.remove('text-neonCyan');
+        btn.classList.remove('text-fgCyan');
         btn.classList.add('text-slate-500');
+        btn.querySelector('div').classList.remove('bg-cyan-950/50', 'border', 'border-cyan-500/30');
       });
 
-      // Activar vista seleccionada
-      if(tab === 'inicio') {
+      if (tab === 'inicio') {
         document.getElementById('viewInicio').classList.remove('hidden');
-        document.getElementById('nav-inicio').classList.add('text-neonCyan');
-      } else if(tab === 'clientes') {
+        setNavActive('nav-inicio');
+      } else if (tab === 'clientes') {
         document.getElementById('viewClientes').classList.remove('hidden');
-        document.getElementById('nav-clientes').classList.add('text-neonCyan');
-        renderClientsDirectory();
-      } else if(tab === 'compras') {
+        setNavActive('nav-clientes');
+        renderClientsList();
+      } else if (tab === 'compras') {
         document.getElementById('viewCompras').classList.remove('hidden');
-        document.getElementById('nav-compras').classList.add('text-neonCyan');
+        setNavActive('nav-compras');
         renderPurchasesList();
       }
       lucide.createIcons();
     }
 
-    // RENDERIZAR DIRECTORIO DE CLIENTES
-    function renderClientsDirectory() {
-      const container = document.getElementById('clientsDirectoryList');
+    function setNavActive(btnId) {
+      const btn = document.getElementById(btnId);
+      btn.classList.add('text-fgCyan');
+      btn.classList.remove('text-slate-500');
+      btn.querySelector('div').classList.add('bg-cyan-950/50', 'border', 'border-cyan-500/30');
+    }
+
+    // RENDERIZAR LISTA DE CLIENTES
+    function renderClientsList() {
+      const container = document.getElementById('clientsListContainer');
       container.innerHTML = '';
 
       clientsData.forEach((c, idx) => {
-        const card = document.createElement('div');
-        card.className = "neon-card rounded-2xl p-4 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer";
-        card.onclick = () => openClientDetail(idx);
-        card.innerHTML = `
+        const div = document.createElement('div');
+        div.className = "carbon-card rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all";
+        div.onclick = () => openClientDetail(idx);
+        div.innerHTML = `
           <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 rounded-xl overflow-hidden border border-slate-700">
-              <img src="${c.img}" class="w-full h-full object-cover">
+            <div class="w-11 h-11 rounded-xl metal-badge flex items-center justify-center border border-cyan-500/30">
+              <i data-lucide="car" class="w-5 h-5 text-fgCyan"></i>
             </div>
             <div>
-              <h4 class="font-extrabold text-white text-sm">${c.name}</h4>
-              <p class="text-xs text-slate-400">${c.carModel}</p>
-              <span class="text-[10px] font-mono text-neonCyan font-bold">${c.plate}</span>
+              <div class="flex items-center gap-2">
+                <h4 class="font-extrabold text-white text-sm">${c.name}</h4>
+                <span class="text-[10px] font-mono text-fgCyan font-bold metal-badge px-1.5 py-0.2 rounded">${c.plate}</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">${c.carModel}</p>
             </div>
           </div>
-          <i data-lucide="chevron-right" class="w-5 h-5 text-slate-600"></i>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
         `;
-        container.appendChild(card);
+        container.appendChild(div);
       });
       lucide.createIcons();
     }
 
-    // ABRIR FICHA DETALLADA DEL CLIENTE
+    // ABRIR DETALLE 360 DEL CLIENTE
     function openClientDetail(index) {
       activeClientIndex = index;
       const c = clientsData[index];
 
-      document.getElementById('detailClientName').innerText = c.name.toUpperCase();
+      document.getElementById('detailClientName').innerText = c.name;
       document.getElementById('detailCarModel').innerText = c.carModel;
       document.getElementById('detailPlate').innerText = c.plate;
-      document.getElementById('detailPhone').innerHTML = `<i data-lucide="phone" class="w-3 h-3 text-neonGreen"></i> ${c.phone}`;
-      document.getElementById('detailCarImg').src = c.img;
+      document.getElementById('detailPhone').innerHTML = `<i data-lucide="phone" class="w-3 h-3 text-fgGreen"></i> ${c.phone}`;
+      
+      if(c.folderUrl) {
+        document.getElementById('detailDriveFolderBtn').href = c.folderUrl;
+        document.getElementById('detailDriveFolderBtn').classList.remove('hidden');
+      }
 
       document.getElementById('viewInicio').classList.add('hidden');
       document.getElementById('viewClientes').classList.add('hidden');
       document.getElementById('viewClienteDetalle').classList.remove('hidden');
-      showDetailTab('fotos');
+      showSubTab('fotos');
       lucide.createIcons();
     }
 
-    // SUB-TABS INTERNOS DE LA FICHA
-    function showDetailTab(subtab) {
+    // SUBTABS
+    function showSubTab(subtab) {
       ['fotos', 'costes', 'bitacora'].forEach(t => {
         document.getElementById(`subpanel-${t}`).classList.add('hidden');
         document.getElementById(`subtab-${t}`).className = "py-2 rounded-lg text-slate-400 hover:text-white";
       });
 
       document.getElementById(`subpanel-${subtab}`).classList.remove('hidden');
-      document.getElementById(`subtab-${subtab}`).className = "py-2 rounded-lg bg-cyan-950/80 text-neonCyan border border-cyan-500/30 font-bold";
+      document.getElementById(`subtab-${subtab}`).className = "py-2 rounded-lg bg-cyan-950/80 text-fgCyan border border-fgCyan/40";
       lucide.createIcons();
     }
 
-    // RENDERIZAR LISTA DE COMPRAS CON TOGGLE ROJO/VERDE
+    // RENDERIZAR COMPRAS (BOTONES ROJO / VERDE)
     function renderPurchasesList() {
-      const container = document.getElementById('purchasesListContainer');
+      const container = document.getElementById('purchasesContainer');
       container.innerHTML = '';
-      let pendingCount = 0;
+      let pending = 0;
 
       purchasesData.forEach((p, idx) => {
-        if (!p.bought) pendingCount++;
+        if (!p.bought) pending++;
         const item = document.createElement('div');
-        item.className = "neon-card rounded-2xl p-3.5 flex items-center justify-between border-l-2 " + (p.bought ? "border-l-emerald-500" : "border-l-rose-500");
+        item.className = "carbon-card rounded-2xl p-3.5 flex items-center justify-between border-l-2 " + (p.bought ? "border-l-fgGreen" : "border-l-fgRed");
         item.innerHTML = `
           <div class="flex items-center space-x-3">
-            <button onclick="togglePurchaseStatus(${idx})" class="w-8 h-8 rounded-full flex items-center justify-center transition-all ${p.bought ? 'bg-emerald-500/20 text-neonGreen border border-emerald-500/50 badge-glow-green' : 'bg-rose-500/20 text-neonFlame border border-rose-500/50 badge-glow-red animate-pulse'}">
-              <i data-lucide="${p.bought ? 'check' : 'alert-circle'}" class="w-4 h-4"></i>
+            <button onclick="togglePurchaseStatus(${idx})" class="w-8 h-8 rounded-full flex items-center justify-center transition-all ${p.bought ? 'bg-emerald-500/20 text-fgGreen border border-emerald-500/50 glow-green' : 'bg-rose-500/20 text-fgRed border border-rose-500/50 glow-red animate-pulse'}">
+              <i data-lucide="${p.bought ? 'check' : 'clock'}" class="w-4 h-4"></i>
             </button>
             <div>
-              <h4 class="font-bold text-xs text-white ${p.bought ? 'line-through text-slate-400' : ''}">${p.part}</h4>
-              <p class="text-[10px] text-slate-400 font-mono">${p.client} · <span class="text-neonCyan">${p.plate}</span></p>
+              <h4 class="font-bold text-xs text-white ${p.bought ? 'line-through text-slate-500' : ''}">${p.part}</h4>
+              <p class="text-[10px] text-slate-400 font-mono">${p.client} · <span class="text-fgCyan">${p.plate}</span></p>
             </div>
           </div>
-          <div class="text-right">
-            <span class="text-xs font-mono font-bold text-slate-300">${p.cost}</span>
-            <span class="block text-[9px] font-bold uppercase ${p.bought ? 'text-neonGreen' : 'text-neonFlame'}">${p.bought ? 'COMPRADO' : 'PENDIENTE'}</span>
+          <div class="text-right font-mono">
+            <span class="text-xs font-bold text-slate-300">${p.cost}</span>
+            <span class="block text-[9px] font-bold uppercase ${p.bought ? 'text-fgGreen' : 'text-fgRed'}">${p.bought ? 'LISTO' : 'PENDIENTE'}</span>
           </div>
         `;
         container.appendChild(item);
       });
 
-      document.getElementById('statsPendingParts').innerText = pendingCount;
-      document.getElementById('badgePendingNav').style.display = pendingCount > 0 ? 'block' : 'none';
+      document.getElementById('statsParts').innerText = pending;
+      document.getElementById('badgePendingNav').style.display = pending > 0 ? 'block' : 'none';
       lucide.createIcons();
     }
 
-    // TOGGLE COMPRADO / PENDIENTE
-    function togglePurchaseStatus(index) {
-      const item = purchasesData[index];
-      const nextState = !item.bought;
-      const confirmMsg = nextState ? `¿Confirmas que se ha comprado "${item.part}"?` : `¿Volver a marcar "${item.part}" como PENDIENTE?`;
-      
-      if (confirm(confirmMsg)) {
-        item.bought = nextState;
-        renderPurchasesList();
-      }
+    function togglePurchaseStatus(idx) {
+      purchasesData[idx].bought = !purchasesData[idx].bought;
+      renderPurchasesList();
     }
 
     function toggleNewClientModal() {
@@ -609,98 +582,164 @@
       lucide.createIcons();
     }
 
-    // AGENDA IPHONE
+    // CONTACTOS IPHONE
     async function getContactFromPhone() {
       if ('contacts' in navigator && 'ContactsManager' in window) {
         try {
           const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
-          if (contacts.length > 0) {
-            if (contacts[0].name && contacts[0].name[0]) document.getElementById('newClientName').value = contacts[0].name[0];
-            if (contacts[0].tel && contacts[0].tel[0]) document.getElementById('newPhone').value = contacts[0].tel[0];
+          if (contacts && contacts[0]) {
+            if (contacts[0].name) document.getElementById('newClientName').value = contacts[0].name[0] || '';
+            if (contacts[0].tel) document.getElementById('newPhone').value = contacts[0].tel[0] || '';
           }
-        } catch (e) { console.log("Cancelado"); }
+        } catch(e) {}
       } else {
-        alert("En tu modelo de iPhone puedes usar el autorrelleno del teclado de Safari.");
+        alert("En este dispositivo puedes rellenar los datos directamente.");
       }
     }
 
-    // CREAR CLIENTE EN GOOGLE DRIVE Y BD
+    // ================= LLAMADA ROBUSTA A GOOGLE DRIVE =================
     async function submitNewClient() {
-      const name = document.getElementById('newClientName').value;
-      const carModel = document.getElementById('newCarModel').value;
-      const plate = document.getElementById('newPlate').value;
-      const phone = document.getElementById('newPhone').value;
+      const name = document.getElementById('newClientName').value.trim();
+      const carModel = document.getElementById('newCarModel').value.trim();
+      const plate = document.getElementById('newPlate').value.trim();
+      const phone = document.getElementById('newPhone').value.trim();
 
-      if (!name || !plate) return alert("Nombre y matrícula son obligatorios.");
+      if (!name || !plate) {
+        alert("Nombre y matrícula son obligatorios.");
+        return;
+      }
 
-      alert("⚡ Conectando con Google Drive... Creando Carpeta, Sheet de Costes y Doc de Bitácora...");
+      alert("⚡ Creando Carpeta del Cliente, Excel de Costes y Doc de Bitácora en Google Drive...");
 
       try {
-        const res = await fetch(APPS_SCRIPT_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'createClient',
             payload: { name, carModel, plate, phone }
           })
         });
-        const data = await res.json();
-        
-        // Agregar al estado local
-        clientsData.unshift({
-          id: data.clientId || Date.now().toString(),
-          name, carModel, plate, phone,
-          urgency: "normal",
-          status: "En Taller",
-          img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200",
-          photosFolderId: data.photosFolderId || "",
-          costSheetId: data.costSheetId || "",
-          docId: data.docId || ""
-        });
 
-        toggleNewClientModal();
-        switchTab('clientes');
-        alert("¡Vehículo y estructura de Google Drive creados con éxito!");
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          clientsData.unshift({
+            id: data.clientId,
+            name: name,
+            carModel: carModel,
+            plate: plate.toUpperCase(),
+            phone: phone,
+            folderUrl: data.folderUrl,
+            photosFolderId: data.photosFolderId,
+            costSheetId: data.costSheetId,
+            docId: data.docId
+          });
+
+          toggleNewClientModal();
+          switchTab('clientes');
+          alert("✅ ¡Estructura de Google Drive creada con éxito!");
+        } else {
+          alert("Error de Drive: " + data.message);
+        }
       } catch (err) {
-        alert("Error de conexión con Apps Script: " + err);
+        alert("Error de conexión con Google Apps Script. Verifica haber implementado como 'Cualquiera' (Anyone): " + err);
       }
     }
 
-    // AÑADIR PIEZA CON PRECIO COMPRA Y PVP
-    function promptAddPartModal() {
-      const item = prompt("Nombre de la pieza:");
+    // SUBIR FOTO A DRIVE
+    function uploadPhotoToDrive(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const active = clientsData[activeClientIndex];
+      if (!active.photosFolderId) {
+        alert("La carpeta de fotos de este cliente aún no tiene ID vinculado.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result;
+        alert("Subiendo evidencia fotográfica a Google Drive...");
+        
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'uploadPhoto',
+              payload: {
+                folderId: active.photosFolderId,
+                base64Data: base64Data,
+                filename: `${active.plate}_${Date.now()}.jpg`
+              }
+            })
+          });
+          const result = await res.json();
+          if(result.status === "success") {
+            alert("✅ Foto guardada en la carpeta de Drive del vehículo.");
+          }
+        } catch(err) {
+          alert("Error al subir foto: " + err);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // AÑADIR PIEZA A LA FACTURA Y COMPRAS
+    async function promptAddPartModal() {
+      const item = prompt("Nombre del recambio o servicio:");
       if (!item) return;
       const qty = prompt("Cantidad:", "1");
-      const pCompra = prompt("Precio de Compra taller (€):", "100");
-      const pVenta = prompt("Precio de Venta cliente PVP (€):", "160");
+      const buyPrice = prompt("Precio de Compra Taller (€):", "50");
+      const sellPrice = prompt("PVP Venta Cliente (€):", "90");
 
-      const tbody = document.getElementById('clientPartsTable');
+      const active = clientsData[activeClientIndex];
+
+      // Pintar visualmente
+      const tbody = document.getElementById('partsTableBody');
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="py-2 text-white font-sans">${item}</td>
         <td class="py-2 text-center">${qty}</td>
-        <td class="py-2 text-right text-slate-400">${pCompra} €</td>
-        <td class="py-2 text-right text-neonCyan font-bold">${pVenta} €</td>
+        <td class="py-2 text-right text-slate-400">${buyPrice} €</td>
+        <td class="py-2 text-right text-fgCyan font-bold">${sellPrice} €</td>
       `;
       tbody.appendChild(tr);
 
-      // Añadir automáticamente a la lista de Compras
+      // Agregar a lista de Compras
       purchasesData.unshift({
         id: Date.now(),
         part: item,
-        client: clientsData[activeClientIndex].name,
-        plate: clientsData[activeClientIndex].plate,
+        client: active.name,
+        plate: active.plate,
         bought: false,
-        cost: `${pCompra} €`
+        cost: `${buyPrice} €`
       });
       renderPurchasesList();
+
+      // Guardar en Sheet de Drive
+      if(active.costSheetId) {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'addCostItem',
+            payload: {
+              costSheetId: active.costSheetId,
+              item, qty, buyPrice, sellPrice
+            }
+          })
+        });
+      }
     }
 
-    // PEDIR PIEZA RÁPIDA DESDE COMPRAS
     function promptQuickPart() {
-      const part = prompt("Pieza a comprar:");
+      const part = prompt("Recambio a pedir:");
       if (!part) return;
       const plate = prompt("Matrícula asociada:");
-      const cost = prompt("Coste estimado (€):", "50 €");
+      const cost = prompt("Coste estimado (€):", "60 €");
 
       purchasesData.unshift({
         id: Date.now(),
@@ -713,12 +752,17 @@
       renderPurchasesList();
     }
 
-    // TRANSCRIPCIÓN NOTA DE VOZ (DOC SYNC)
+    // GRABACIÓN DE NOTAS DE VOZ (SYNC DOC)
     let recognition;
     let isRecording = false;
+
     function toggleVoiceRecording() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return alert("Usa el dictado por voz del teclado de tu iPhone.");
+      if (!SpeechRecognition) {
+        const text = prompt("Escribe la nota para el Google Doc:");
+        if (text) sendNoteToGoogleDoc(text);
+        return;
+      }
 
       if (!isRecording) {
         recognition = new SpeechRecognition();
@@ -726,30 +770,45 @@
         recognition.onstart = () => {
           isRecording = true;
           document.getElementById('recordText').innerText = "Escuchando...";
-          document.getElementById('recordBtn').classList.add("bg-rose-600", "text-white");
+          document.getElementById('recordBtn').classList.add("bg-red-600", "text-white");
         };
         recognition.onresult = (e) => {
-          const text = e.results[0][0].transcript;
-          const container = document.getElementById('notesContainer');
-          const div = document.createElement('div');
-          div.className = "p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300";
-          div.innerHTML = `
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 mb-1">
-              <span class="text-neonCyan">Mecánico (Nota de voz)</span>
-              <span>Ahora</span>
-            </div>
-            "${text}"
-          `;
-          container.prepend(div);
+          sendNoteToGoogleDoc(e.results[0][0].transcript);
         };
         recognition.onend = () => {
           isRecording = false;
           document.getElementById('recordText').innerText = "Grabar Audio";
-          document.getElementById('recordBtn').classList.remove("bg-rose-600", "text-white");
+          document.getElementById('recordBtn').classList.remove("bg-red-600", "text-white");
         };
         recognition.start();
       } else {
         recognition.stop();
+      }
+    }
+
+    async function sendNoteToGoogleDoc(text) {
+      const active = clientsData[activeClientIndex];
+      const feed = document.getElementById('notesFeed');
+      const div = document.createElement('div');
+      div.className = "p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300";
+      div.innerHTML = `
+        <div class="flex justify-between text-[10px] font-mono text-slate-500 mb-1">
+          <span class="text-fgCyan">Mecánico (Nota de voz)</span>
+          <span>Ahora</span>
+        </div>
+        "${text}"
+      `;
+      feed.prepend(div);
+
+      if (active.docId) {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'addNote',
+            payload: { docId: active.docId, noteText: text, author: "Mecánico iPhone" }
+          })
+        });
       }
     }
   </script>
