@@ -487,7 +487,7 @@
       refreshDashboardMetrics();
       renderPitLane();
       renderClientsList();
-      renderPurchasesList();
+      ;
       syncFromGoogleDrive();
     });
 
@@ -936,15 +936,40 @@
       if (activeClientIndex !== -1) renderClientParts(clientsData[activeClientIndex]);
     }
 
+    let touchStartX = 0;
+
+    function handleTouchStart(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }
+
+    function handleTouchEnd(e, idx) {
+      const touchEndX = e.changedTouches[0].screenX;
+      // Si desliza hacia la izquierda más de 60px
+      if (touchStartX - touchEndX > 60) {
+        deletePurchaseItem(idx);
+      }
+    }
+
     function renderPurchasesList() {
       const container = document.getElementById('purchasesContainer');
       container.innerHTML = '';
       let pending = 0;
 
+      if (purchasesData.length === 0) {
+        container.innerHTML = `<div class="metal-panel rounded-2xl p-6 text-center text-slate-500 text-xs font-mono">No hay pedidos registrados en la lista.</div>`;
+        refreshDashboardMetrics();
+        return;
+      }
+
       purchasesData.forEach((p, idx) => {
         if (!p.bought) pending++;
         const item = document.createElement('div');
-        item.className = "metal-panel rounded-2xl p-3.5 flex items-center justify-between border-l-2 " + (p.bought ? "border-l-emerald-500" : "border-l-rose-500");
+        item.className = "metal-panel rounded-2xl p-3.5 flex items-center justify-between border-l-2 transition-transform active:scale-[0.99] " + (p.bought ? "border-l-emerald-500" : "border-l-rose-500");
+        
+        // Eventos táctiles para deslizar a la izquierda
+        item.setAttribute("ontouchstart", "handleTouchStart(event)");
+        item.setAttribute("ontouchend", `handleTouchEnd(event, ${idx})`);
+
         item.innerHTML = `
           <div class="flex items-center space-x-3">
             <button onclick="togglePurchaseStatus(${idx})" class="w-8 h-8 rounded-full flex items-center justify-center transition-all ${p.bought ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 glow-green' : 'bg-rose-500/20 text-rose-400 border border-rose-500/50 glow-red animate-pulse'}">
@@ -955,9 +980,14 @@
               <p class="text-[10px] text-slate-400 font-mono">${p.client} · <span class="text-cyan-400">${p.plate}</span></p>
             </div>
           </div>
-          <div class="text-right font-mono">
-            <span class="text-xs font-bold text-slate-300">${p.cost}</span>
-            <span class="block text-[9px] font-bold uppercase ${p.bought ? 'text-emerald-400' : 'text-rose-400'}">${p.bought ? 'COMPRADO' : 'PENDIENTE'}</span>
+          <div class="flex items-center gap-3">
+            <div class="text-right font-mono">
+              <span class="text-xs font-bold text-slate-300">${p.cost}</span>
+              <span class="block text-[9px] font-bold uppercase ${p.bought ? 'text-emerald-400' : 'text-rose-400'}">${p.bought ? 'COMPRADO' : 'PENDIENTE'}</span>
+            </div>
+            <button onclick="deletePurchaseItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1.5 metal-btn rounded-xl" title="Eliminar pieza">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
           </div>
         `;
         container.appendChild(item);
@@ -965,6 +995,41 @@
 
       refreshDashboardMetrics();
       lucide.createIcons();
+    }
+
+    // ELIMINAR PIEZA DE COMPRAS (Y DE LA FACTURA DEL CLIENTE SI ESTABA VINCULADA)
+    function deletePurchaseItem(idx) {
+      const purchase = purchasesData[idx];
+      if (confirm(`¿Eliminar el pedido "${purchase.part}"?`)) {
+        
+        // Si estaba vinculada a un cliente, borrarla de su factura y recalcular
+        const client = clientsData.find(c => c.plate === purchase.plate);
+        if (client && client.parts) {
+          const partIndex = client.parts.findIndex(p => p.item === purchase.part);
+          if (partIndex !== -1) {
+            client.parts.splice(partIndex, 1);
+            
+            // Si ya no quedan piezas pendientes para ese coche, restaurar su estado
+            const pendingLeft = purchasesData.filter(p => p.plate === client.plate && !p.bought && p.id !== purchase.id).length;
+            if (pendingLeft === 0) {
+              client.urgency = client.previousUrgency || 'in_progress';
+              if (activeClientIndex !== -1 && clientsData[activeClientIndex].plate === client.plate) {
+                document.getElementById('detailUrgencySelect').value = client.urgency;
+              }
+            }
+            syncInvoiceWithDrive(client);
+            if (activeClientIndex !== -1 && clientsData[activeClientIndex].plate === client.plate) {
+              renderClientParts(client);
+            }
+          }
+        }
+
+        purchasesData.splice(idx, 1);
+        savePersistentData();
+        renderPurchasesList();
+        refreshDashboardMetrics();
+        renderPitLane();
+      }
     }
 
     // FOTOS RÁPIDAS
