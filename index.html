@@ -60,7 +60,7 @@
     .glow-green { box-shadow: 0 0 14px rgba(0, 245, 155, 0.45); }
   </style>
 </head>
-<body class="text-slate-100 min-h-screen pb-28 select-none">
+<body class="text-slate-100 min-h-screen pb-32 select-none">
 
   <!-- ================= TOP BAR ================= -->
   <header class="sticky top-0 z-40 bg-[#080b11]/95 backdrop-blur-xl border-b border-[#2d3b52] px-5 pt-12 pb-3.5 flex justify-between items-center shadow-2xl">
@@ -247,7 +247,7 @@
       </div>
     </div>
 
-    <!-- 3. NOTAS (CON DICTADO NATIVO / COMPATIBLE IPHONE) -->
+    <!-- 3. NOTAS (TRANSCRIPCIÓN COMPATIBLE) -->
     <div id="subpanel-notas" class="metal-panel rounded-2xl p-4 space-y-3 hidden">
       <div class="flex justify-between items-center">
         <div>
@@ -260,7 +260,7 @@
       </div>
 
       <div class="space-y-2">
-        <textarea id="newNoteInput" rows="3" placeholder="Escribir nota o pulsar Dictar (también puedes usar el micrófono del teclado de tu iPhone)..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-400"></textarea>
+        <textarea id="newNoteInput" rows="3" placeholder="Escribir nota o pulsar Dictar para transcribir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-400"></textarea>
         <button onclick="submitManualNote()" class="w-full py-2 metal-btn text-cyan-300 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5">
           <i data-lucide="send" class="w-3.5 h-3.5"></i> Guardar Nota en Doc
         </button>
@@ -276,7 +276,7 @@
     <div class="flex justify-between items-center">
       <div>
         <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase">PEDIDOS & RECAMBIOS</h2>
-        <p class="text-[10px] text-slate-500 font-mono">Toca para marcar: 🔴 Pendiente $\rightarrow$ 🟢 Comprado</p>
+        <p class="text-[10px] text-slate-500 font-mono">Desliza a la izquierda o toca 🗑️ para borrar</p>
       </div>
       <button onclick="openPartModal()" class="metal-btn text-amber-400 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i> Pedir Pieza
@@ -285,7 +285,7 @@
     <div class="space-y-2.5" id="purchasesContainer"></div>
   </section>
 
-  <!-- ================= MODAL: VISOR DE FOTOS & WHATSAPP CORREGIDO ================= -->
+  <!-- ================= MODAL: VISOR DE FOTOS & WHATSAPP (CORREGIDO Y CERRADO) ================= -->
   <div id="photoViewerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-sm space-y-4">
       <div class="flex justify-between items-center">
@@ -295,16 +295,18 @@
         </button>
       </div>
       <div class="rounded-2xl overflow-hidden border border-slate-700 bg-black max-h-[60vh] flex items-center justify-center">
-        <img id="modalPreviewImg" src="" class="w-full object-contain max-h-[60vh]">
+        <img id="modalPreviewImg" src="" class="w-full object-contain max-h-[60vh]" alt="Foto">
       </div>
-    <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-2 gap-2">
         <a id="waDirectBtn" href="#" target="_blank" rel="noopener noreferrer" class="py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform text-center">
-          <i data-lucide="share-2" class="w-4 h-4"></i> Enviar por WhatsApp
+          <i data-lucide="share-2" class="w-4 h-4"></i> Enviar WhatsApp
         </a>
         <button onclick="deleteActivePhoto()" class="py-3 rounded-xl bg-rose-600/20 border border-rose-500/40 text-rose-300 font-black text-xs flex items-center justify-center gap-2">
           <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Foto
         </button>
       </div>
+    </div>
+  </div>
 
   <!-- ================= MODAL: PEDIR RECAMBIO ================= -->
   <div id="partOrderModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
@@ -352,7 +354,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: CONFIRMAR COMPRA / PRECIO REAL ================= -->
+  <!-- ================= MODAL: CONFIRMAR COMPRA ================= -->
   <div id="confirmBuyModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="metal-panel rounded-3xl w-full max-w-sm p-5 space-y-4 border border-emerald-500/40 glow-green">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -385,7 +387,7 @@
     <span id="hudMessage" class="text-xs font-bold text-white font-mono">Procesando...</span>
   </div>
 
-  <!-- ================= BARRA DE 3 BOTONES BLINDADA PARA IPHONE ================= -->
+  <!-- ================= BARRA DE NAVEGACIÓN INFERIOR (3 BOTONES BLINDADOS) ================= -->
   <nav class="fixed bottom-0 left-0 right-0 bg-[#080b11] border-t border-slate-800 pt-2 pb-6 px-6 flex justify-around items-center z-[999] shadow-2xl">
     <button type="button" onclick="switchTab('inicio')" id="nav-inicio" class="flex flex-col items-center gap-1 text-cyan-400">
       <div class="p-1 rounded-xl bg-cyan-950/80 border border-cyan-500/40">
@@ -671,7 +673,6 @@
       lucide.createIcons();
     }
 
-    // ABRIR CLIENTE Y CARGAR FOTOS DIRECTAMENTE DESDE GOOGLE DRIVE
     async function openClientDetail(index) {
       activeClientIndex = index;
       const c = clientsData[index];
@@ -700,7 +701,6 @@
       showSubTab('fotos');
       lucide.createIcons();
 
-      // Consultar fotos directamente de Google Drive
       if (c.photosFolderId) {
         loadPhotosDirectFromDrive(c.photosFolderId);
       } else {
@@ -708,7 +708,6 @@
       }
     }
 
-    // 📸 CONSULTAR FOTOS EN GOOGLE DRIVE EN TIEMPO REAL
     async function loadPhotosDirectFromDrive(folderId) {
       const active = clientsData[activeClientIndex];
       renderClientPhotos(active.photos || [], true);
@@ -951,7 +950,7 @@
       if (activeClientIndex !== -1) renderClientParts(clientsData[activeClientIndex]);
     }
 
-   let touchStartX = 0;
+    let touchStartX = 0;
 
     function handleTouchStart(e) {
       touchStartX = e.changedTouches[0].screenX;
@@ -1040,7 +1039,6 @@
       }
     }
 
-    // SUBIDA DE FOTO A DRIVE
     async function handleProcessPhoto(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1089,7 +1087,7 @@
           const div = document.createElement('div');
           div.className = "relative rounded-xl overflow-hidden h-24 border border-slate-700 cursor-pointer shadow-md active:scale-95 transition-transform";
           div.onclick = () => openPhotoModal(idx);
-          div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover">`;
+          div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover" alt="Evidencia">`;
           grid.appendChild(div);
         });
       } else {
@@ -1097,26 +1095,30 @@
       }
     }
 
-   function openPhotoModal(idx) {
+    function openPhotoModal(idx) {
       selectedPhotoIndex = idx;
       const active = clientsData[activeClientIndex];
       const photoObj = active.photos[idx];
-      const photoUrl = typeof photoObj === 'string' ? photoObj : (photoObj.driveUrl || photoObj.url);
+      
+      let photoUrl = active.folderUrl;
+      if (photoObj && typeof photoObj === 'object' && photoObj.driveUrl) {
+        photoUrl = photoObj.driveUrl;
+      } else if (photoObj && typeof photoObj === 'object' && photoObj.url) {
+        photoUrl = photoObj.url;
+      }
 
-      document.getElementById('modalPreviewImg').src = typeof photoObj === 'string' ? photoObj : photoObj.url;
+      document.getElementById('modalPreviewImg').src = typeof photoObj === 'string' ? photoObj : (photoObj.url || photoObj.driveUrl);
 
-      // Asegurar prefijo de España (34) si tiene 9 dígitos para que WhatsApp no dé error
       let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
       if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
 
       const mensaje = encodeURIComponent(`Hola ${active.name}, te enviamos una evidencia de tu ${active.carModel} (${active.plate}) en FAST GARAGE:\n${photoUrl}`);
-      
-      // Asignar el enlace directo a WhatsApp
       document.getElementById('waDirectBtn').href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${mensaje}`;
 
       document.getElementById('photoViewerModal').classList.remove('hidden');
       lucide.createIcons();
     }
+
     function closePhotoModal() {
       document.getElementById('photoViewerModal').classList.add('hidden');
     }
@@ -1127,39 +1129,6 @@
       savePersistentData();
       renderClientPhotos(active.photos);
       closePhotoModal();
-    }
-
-   // 📲 ENVIAR POR WHATSAPP DIRECTO AL CLIENTE (100% COMPATIBLE IPHONE)
-    function sharePhotoWhatsApp() {
-      const active = clientsData[activeClientIndex];
-      const photoObj = active.photos[selectedPhotoIndex];
-      const photoUrl = typeof photoObj === 'string' ? active.folderUrl : (photoObj.driveUrl || photoObj.url || active.folderUrl);
-
-      // Limpiar teléfono y asegurar prefijo de España (34) si tiene 9 dígitos
-      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
-      if (cleanPhone.length === 9 && (cleanPhone.startsWith('6') || cleanPhone.startsWith('7') || cleanPhone.startsWith('9'))) {
-        cleanPhone = '34' + cleanPhone;
-      }
-
-      if (!cleanPhone) {
-        alert("El cliente no tiene un teléfono válido registrado.");
-        return;
-      }
-
-      const mensaje = `Hola ${active.name}, te enviamos una evidencia fotográfica de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n\n📷 Ver foto:\n${photoUrl}`;
-      const encodedMsg = encodeURIComponent(mensaje);
-
-      // Enlace universal compatible con la App de WhatsApp en iOS
-      const waAppUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
-      const waWebUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
-
-      // Intentar abrir la app nativa de WhatsApp
-      window.location.href = waAppUrl;
-
-      // Fallback por si no tiene WhatsApp instalado
-      setTimeout(() => {
-        window.location.href = waWebUrl;
-      }, 700);
     }
 
     function syncInvoiceWithDrive(client) {
@@ -1228,7 +1197,7 @@
       }
     }
 
-  // 🎙️ TRANSCRIPCIÓN EN TIEMPO REAL (SPEECH-TO-TEXT)
+    // 🎙️ TRANSCRIPCIÓN EN TIEMPO REAL
     let recognition;
     let isRecording = false;
 
@@ -1236,7 +1205,7 @@
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        alert("Tu navegador no soporta transcripción por voz. Usa Google Chrome o Safari actualizado.");
+        alert("Tu navegador no soporta transcripción por voz directa. Puedes escribir o usar el micrófono del teclado.");
         return;
       }
 
@@ -1266,20 +1235,18 @@
             input.value = transcript;
           };
 
-          recognition.onerror = (event) => {
+          recognition.onerror = () => {
             stopVoiceUI();
             hideHUD();
-            console.log("Error de reconocimiento:", event.error);
           };
 
           recognition.onend = () => {
             stopVoiceUI();
             hideHUD();
-            // Si transcribió texto, guardarlo automáticamente en el Doc
             if (input.value.trim().length > 0) {
               sendNoteToGoogleDoc(input.value.trim());
               input.value = '';
-              showHUD("✅ Nota transcrita y guardada en Doc", false);
+              showHUD("✅ Nota guardada en Doc", false);
               setTimeout(hideHUD, 1500);
             }
           };
@@ -1288,7 +1255,6 @@
         } catch (err) {
           stopVoiceUI();
           hideHUD();
-          alert("Error al iniciar el micrófono: " + err);
         }
       } else {
         if (recognition) recognition.stop();
@@ -1302,7 +1268,7 @@
       document.getElementById('recordBtn').classList.remove("bg-rose-600", "text-white");
     }
 
-   async function submitNewClient() {
+    async function submitNewClient() {
       const name = document.getElementById('newClientName').value.trim();
       const carModel = document.getElementById('newCarModel').value.trim();
       const plate = document.getElementById('newPlate').value.trim();
@@ -1310,15 +1276,13 @@
       const box = document.getElementById('newBox').value;
       const urgency = document.getElementById('newUrgency').value;
 
-      if (!name || !plate) {
-        alert("Nombre y matrícula son obligatorios.");
-        return;
-      }
+      if (!name || !plate) return alert("Nombre y matrícula obligatorios.");
 
-      // Buscar el botón de envío y bloquearlo para evitar clics múltiples
       const submitBtn = document.querySelector('#newClientModal .blue-nitro-btn');
-      submitBtn.disabled = true;
-      submitBtn.innerText = "⏳ Creando en Drive...";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ Creando en Drive...";
+      }
 
       showHUD("⚡ Creando Carpeta, Excel y Doc en Google Drive...", true);
 
@@ -1367,11 +1331,12 @@
         }
       } catch (err) {
         hideHUD();
-        alert("Error de conexión con Google Apps Script: " + err);
+        alert("Error de conexión: " + err);
       } finally {
-        // Restaurar el botón
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Crear en Drive";
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Crear en Drive";
+        }
       }
     }
 
@@ -1427,7 +1392,6 @@
       lucide.createIcons();
     }
 
-    // ELIMINAR CLIENTE / VEHÍCULO DE LA APLICACIÓN
     function deleteCurrentClient() {
       const active = clientsData[activeClientIndex];
       if (confirm(`¿Seguro que deseas eliminar el vehículo ${active.carModel} (${active.plate}) de ${active.name}?`)) {
@@ -1441,7 +1405,6 @@
         setTimeout(hideHUD, 1500);
       }
     }
-    
   </script>
 </body>
 </html>
