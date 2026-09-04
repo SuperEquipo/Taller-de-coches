@@ -1057,27 +1057,37 @@
       closePhotoModal();
     }
 
-    // 📲 ENVIAR POR WHATSAPP (COMPATIBLE IPHONE)
+   // 📲 ENVIAR POR WHATSAPP DIRECTO AL CLIENTE (100% COMPATIBLE IPHONE)
     function sharePhotoWhatsApp() {
       const active = clientsData[activeClientIndex];
       const photoObj = active.photos[selectedPhotoIndex];
-      const photoUrl = typeof photoObj === 'string' ? active.folderUrl : (photoObj.driveUrl || photoObj.url);
+      const photoUrl = typeof photoObj === 'string' ? active.folderUrl : (photoObj.driveUrl || photoObj.url || active.folderUrl);
 
-      const cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
-      const text = `Hola ${active.name}, te compartimos una evidencia fotográfica de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${photoUrl}`;
-
-      // Si el navegador soporta compartir de iOS de forma nativa
-      if (navigator.share) {
-        navigator.share({
-          title: `FAST GARAGE - ${active.carModel}`,
-          text: text,
-          url: photoUrl
-        }).catch(() => {
-          window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
-        });
-      } else {
-        window.location.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+      // Limpiar teléfono y asegurar prefijo de España (34) si tiene 9 dígitos
+      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone.length === 9 && (cleanPhone.startsWith('6') || cleanPhone.startsWith('7') || cleanPhone.startsWith('9'))) {
+        cleanPhone = '34' + cleanPhone;
       }
+
+      if (!cleanPhone) {
+        alert("El cliente no tiene un teléfono válido registrado.");
+        return;
+      }
+
+      const mensaje = `Hola ${active.name}, te enviamos una evidencia fotográfica de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n\n📷 Ver foto:\n${photoUrl}`;
+      const encodedMsg = encodeURIComponent(mensaje);
+
+      // Enlace universal compatible con la App de WhatsApp en iOS
+      const waAppUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
+      const waWebUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+      // Intentar abrir la app nativa de WhatsApp
+      window.location.href = waAppUrl;
+
+      // Fallback por si no tiene WhatsApp instalado
+      setTimeout(() => {
+        window.location.href = waWebUrl;
+      }, 700);
     }
 
     function syncInvoiceWithDrive(client) {
@@ -1146,19 +1156,19 @@
       }
     }
 
-    // 🎙️ DICTADO POR VOZ CORREGIDO (CON FALLBACK NATIVO IPHONE)
+  // 🎙️ DICTADO INTELIGENTE (WEB SPEECH + ACTIVACIÓN NATIVA IPHONE)
     let recognition;
     let isRecording = false;
 
     function toggleVoiceRecording() {
+      const input = document.getElementById('newNoteInput');
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      // Si Safari en modo App restringe SpeechRecognition, activar el campo de texto directo
+      // Si el navegador/iOS no soporta la API experimental, enfocar teclado nativo con micrófono
       if (!SpeechRecognition) {
-        const input = document.getElementById('newNoteInput');
         input.focus();
-        showHUD("Usa el micrófono del teclado de tu iPhone 🎙️", false);
-        setTimeout(hideHUD, 2500);
+        showHUD("🎙️ Toca el micrófono del teclado del iPhone para dictar", false);
+        setTimeout(hideHUD, 3000);
         return;
       }
 
@@ -1173,19 +1183,22 @@
             isRecording = true;
             document.getElementById('recordText').innerText = "Escuchando...";
             document.getElementById('recordBtn').classList.add("bg-rose-600", "text-white");
+            showHUD("🎙️ Habla ahora...", true);
           };
 
           recognition.onresult = (e) => {
             const transcript = e.results[0][0].transcript;
-            const input = document.getElementById('newNoteInput');
             input.value = (input.value ? input.value + " " : "") + transcript;
             sendNoteToGoogleDoc(transcript);
+            showHUD("✅ Nota dictada y guardada", false);
+            setTimeout(hideHUD, 1500);
           };
 
           recognition.onerror = () => {
             stopVoiceUI();
-            const input = document.getElementById('newNoteInput');
             input.focus();
+            showHUD("🎙️ Usa el micro del teclado de tu iPhone", false);
+            setTimeout(hideHUD, 2500);
           };
 
           recognition.onend = () => {
@@ -1195,7 +1208,9 @@
           recognition.start();
         } catch (err) {
           stopVoiceUI();
-          document.getElementById('newNoteInput').focus();
+          input.focus();
+          showHUD("🎙️ Usa el micro del teclado de tu iPhone", false);
+          setTimeout(hideHUD, 2500);
         }
       } else {
         if (recognition) recognition.stop();
