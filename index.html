@@ -392,10 +392,10 @@
 
   <!-- JAVASCRIPT APP ENGINE -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxITvbcWWuXRkEpyWSfguEzPsx1NESw3fG4h7QxSbt3G5Gc12QBt_JlpdJ05dcaieCX_w/exec";
+   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxITvbcWWuXRkEpyWSfguEzPsx1NESw3fG4h7QxSbt3G5Gc12QBt_JlpdJ05dcaieCX_w/exec";
 
-    // BASE DE DATOS LOCAL REACTIVA (SINCRONIZADA)
-    let clientsData = [
+    // 1. CARGA INICIAL: Lee de la memoria local del iPhone
+    let clientsData = JSON.parse(localStorage.getItem('FG_CLIENTS')) || [
       { 
         id: "1", 
         name: "Sarah J. Chen", 
@@ -414,45 +414,74 @@
           { item: "Aceite Sintético 5W40", qty: 8, buy: 95, sell: 160 }
         ],
         notes: ["Revisado volante bimasa. Procediendo al montaje del kit de embrague."]
-      },
-      { 
-        id: "2", 
-        name: "Dominic Toretto", 
-        carModel: "Dodge Charger R/T 1970", 
-        plate: "DOM-1970", 
-        phone: "+34 611 000 777", 
-        box: "Box 2", 
-        urgency: "waiting_parts", 
-        problem: "Instalación Supercharger Blower", 
-        folderUrl: "https://drive.google.com", 
-        photosFolderId: "", 
-        costSheetId: "", 
-        docId: "",
-        parts: [
-          { item: "Supercharger Blower 8-71", qty: 1, buy: 1450, sell: 2100 }
-        ],
-        notes: ["Esperando admisión especial para montaje del blower."]
       }
     ];
 
-    let purchasesData = [
-      { id: 101, part: "Supercharger Blower 8-71", client: "Dominic Toretto", plate: "DOM-1970", bought: false, cost: "1,450 €" },
-      { id: 102, part: "Kit Embrague Cerámico", client: "Sarah J. Chen", plate: "CA 458-7X", bought: true, cost: "450 €" }
+    let purchasesData = JSON.parse(localStorage.getItem('FG_PURCHASES')) || [
+      { id: 101, part: "Supercharger Blower 8-71", client: "Dominic Toretto", plate: "DOM-1970", bought: false, cost: "1,450 €" }
     ];
 
     let activeClientIndex = 0;
 
+    // GUARDAR EN MEMORIA PERMANENTE DEL IPHONE
+    function savePersistentData() {
+      localStorage.setItem('FG_CLIENTS', JSON.stringify(clientsData));
+      localStorage.setItem('FG_PURCHASES', JSON.stringify(purchasesData));
+    }
+
+    // INICIALIZACIÓN Y SINCRONIZACIÓN CON GOOGLE DRIVE
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       refreshDashboardMetrics();
       renderPitLane();
       renderClientsList();
       renderPurchasesList();
+      
+      // Sincronizar con Google Drive en segundo plano
+      syncFromGoogleDrive();
     });
 
-    // 1. RECALCULAR MÉTRICAS EN VIVO
+    // DESCARGAR CLIENTES REALES DE GOOGLE DRIVE (MÁSTER SHEET)
+    async function syncFromGoogleDrive() {
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getClients`);
+        const data = await res.json();
+        
+        if (data.status === "success" && data.clients && data.clients.length > 0) {
+          // Fusionar clientes de Drive con los datos locales
+          data.clients.forEach(cloudClient => {
+            const exists = clientsData.find(c => c.plate === cloudClient.plate);
+            if (!exists) {
+              clientsData.unshift({
+                id: cloudClient.id,
+                name: cloudClient.name,
+                carModel: cloudClient.carModel,
+                plate: cloudClient.plate,
+                phone: cloudClient.phone,
+                box: "Box 1",
+                urgency: "in_progress",
+                problem: "Registrado en Drive",
+                folderUrl: cloudClient.folderUrl,
+                photosFolderId: cloudClient.photosFolderId,
+                costSheetId: cloudClient.costSheetId,
+                docId: cloudClient.docId,
+                parts: [],
+                notes: []
+              });
+            }
+          });
+          savePersistentData();
+          refreshDashboardMetrics();
+          renderPitLane();
+          renderClientsList();
+        }
+      } catch (e) {
+        console.log("Modo offline o cargando desde caché local.");
+      }
+    }
+
+    // ACTUALIZAR MÉTRICAS DEL PIT LANE
     function refreshDashboardMetrics() {
-      // Contar boxes ocupados (cualquiera que no esté en Recepción o Entregado)
       const boxesCount = clientsData.filter(c => c.box !== 'Recepción' && c.box !== 'Entregado').length;
       const urgentCount = clientsData.filter(c => c.urgency === 'urgent').length;
       const pendingParts = purchasesData.filter(p => !p.bought).length;
@@ -463,7 +492,7 @@
       document.getElementById('badgePendingNav').style.display = pendingParts > 0 ? 'block' : 'none';
     }
 
-    // 2. RENDERIZAR COCHES EN BOXES (INICIO / PIT LANE)
+    // RENDERIZAR COCHES EN BOXES
     function renderPitLane() {
       const container = document.getElementById('pitlaneList');
       container.innerHTML = '';
@@ -478,7 +507,6 @@
       activeBoxes.forEach((c) => {
         const originalIndex = clientsData.findIndex(item => item.plate === c.plate);
         
-        // Determinar badge de urgencia
         let badgeHtml = '';
         if (c.urgency === 'urgent') {
           badgeHtml = `<span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/40 glow-red">🔥 URGENTE</span>`;
@@ -510,7 +538,7 @@
       lucide.createIcons();
     }
 
-    // 3. RENDERIZAR LISTA DE CLIENTES
+    // RENDERIZAR DIRECTORIO
     function renderClientsList() {
       const container = document.getElementById('clientsListContainer');
       container.innerHTML = '';
@@ -539,7 +567,7 @@
       lucide.createIcons();
     }
 
-    // 4. ABRIR FICHA DEL CLIENTE
+    // ABRIR DETALLE DEL CLIENTE
     function openClientDetail(index) {
       activeClientIndex = index;
       const c = clientsData[index];
@@ -563,17 +591,19 @@
       lucide.createIcons();
     }
 
-    // 5. ACTUALIZAR BOX / UBICACIÓN DEL COCHE
+    // ACTUALIZAR BOX
     function updateClientBox(newBox) {
       clientsData[activeClientIndex].box = newBox;
+      savePersistentData();
       refreshDashboardMetrics();
       renderPitLane();
       renderClientsList();
     }
 
-    // 6. ACTUALIZAR URGENCIA DEL COCHE
+    // ACTUALIZAR URGENCIA
     function updateClientUrgency(newUrgency) {
       clientsData[activeClientIndex].urgency = newUrgency;
+      savePersistentData();
       refreshDashboardMetrics();
       renderPitLane();
     }
@@ -601,7 +631,7 @@
         });
       }
 
-      const labor = 330; // 5.5 hrs x 60 €
+      const labor = 330;
       const finalInvoice = totalPVP + labor;
       const profit = finalInvoice - totalCost;
 
@@ -628,7 +658,6 @@
       }
     }
 
-    // 7. RENDERIZAR COMPRAS
     function renderPurchasesList() {
       const container = document.getElementById('purchasesContainer');
       container.innerHTML = '';
@@ -662,10 +691,11 @@
 
     function togglePurchaseStatus(idx) {
       purchasesData[idx].bought = !purchasesData[idx].bought;
+      savePersistentData();
       renderPurchasesList();
     }
 
-    // 8. CREAR CLIENTE EN GOOGLE DRIVE Y ENLAZAR AL PIT LANE
+    // DAR DE ALTA CLIENTE (GUARDADO PERSISTENTE + DRIVE)
     async function submitNewClient() {
       const name = document.getElementById('newClientName').value.trim();
       const carModel = document.getElementById('newCarModel').value.trim();
@@ -699,7 +729,7 @@
             phone: phone,
             box: box,
             urgency: urgency,
-            problem: "Recepción en Taller",
+            problem: "Revisión en Boxes",
             folderUrl: data.folderUrl,
             photosFolderId: data.photosFolderId,
             costSheetId: data.costSheetId,
@@ -708,12 +738,15 @@
             notes: []
           });
 
+          // Guardar de inmediato en el móvil
+          savePersistentData();
+          
           toggleNewClientModal();
           refreshDashboardMetrics();
           renderPitLane();
           renderClientsList();
           switchTab('inicio');
-          alert("✅ ¡Coche asignado a Boxes y carpetas creadas en Drive!");
+          alert("✅ ¡Coche guardado en Boxes y carpetas creadas en Drive!");
         } else {
           alert("Error de Drive: " + data.message);
         }
@@ -722,7 +755,6 @@
       }
     }
 
-    // AÑADIR PIEZA CON CÁLCULO DIRECTO
     function promptAddPartModal() {
       const item = prompt("Nombre del recambio:");
       if (!item) return;
@@ -734,7 +766,6 @@
       if(!active.parts) active.parts = [];
       active.parts.push({ item, qty: Number(qty), buy: Number(buyPrice), sell: Number(sellPrice) });
 
-      // Añadir a compras
       purchasesData.unshift({
         id: Date.now(),
         part: item,
@@ -744,6 +775,7 @@
         cost: `${buyPrice} €`
       });
 
+      savePersistentData();
       renderClientParts(active);
       renderPurchasesList();
 
@@ -857,6 +889,7 @@
       const plate = prompt("Matrícula:");
       const cost = prompt("Coste estimado (€):", "60 €");
       purchasesData.unshift({ id: Date.now(), part: part, client: "Taller Asignado", plate: plate || "GENERAL", bought: false, cost: cost.includes("€") ? cost : cost + " €" });
+      savePersistentData();
       renderPurchasesList();
     }
 
@@ -893,6 +926,7 @@
       const active = clientsData[activeClientIndex];
       if(!active.notes) active.notes = [];
       active.notes.unshift(text);
+      savePersistentData();
       renderClientNotes(active);
 
       if (active.docId) {
