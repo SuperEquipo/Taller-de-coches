@@ -647,14 +647,21 @@
       lucide.createIcons();
     }
 
-    function renderClientsList() {
+   function renderClientsList(listToRender = clientsData) {
       const container = document.getElementById('clientsListContainer');
       container.innerHTML = '';
 
-      clientsData.forEach((c, idx) => {
+      if (listToRender.length === 0) {
+        container.innerHTML = `<div class="metal-panel rounded-2xl p-6 text-center text-slate-500 text-xs font-mono">No se encontraron vehículos coincidentes.</div>`;
+        return;
+      }
+
+      listToRender.forEach((c) => {
+        // Encontrar el índice real en la base de datos completa
+        const originalIndex = clientsData.findIndex(item => item.id === c.id || item.plate === c.plate);
         const div = document.createElement('div');
         div.className = "metal-panel rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all";
-        div.onclick = () => openClientDetail(idx);
+        div.onclick = () => openClientDetail(originalIndex);
         div.innerHTML = `
           <div class="flex items-center space-x-3">
             <div class="w-11 h-11 rounded-xl metal-btn flex items-center justify-center border border-cyan-500/40">
@@ -673,6 +680,23 @@
         container.appendChild(div);
       });
       lucide.createIcons();
+    }
+
+    // 🔍 FUNCIÓN DEL BUSCADOR: FILTRA POR MATRÍCULA, MODELO O CLIENTE AL ESCRIBIR
+    function filterClients() {
+      const query = (document.getElementById('searchClientInput').value || '').toLowerCase().trim();
+      if (!query) {
+        renderClientsList(clientsData);
+        return;
+      }
+
+      const filtered = clientsData.filter(c => 
+        (c.name && c.name.toLowerCase().includes(query)) ||
+        (c.plate && c.plate.toLowerCase().includes(query)) ||
+        (c.carModel && c.carModel.toLowerCase().includes(query))
+      );
+
+      renderClientsList(filtered);
     }
 
     async function openClientDetail(index) {
@@ -1388,9 +1412,21 @@
       lucide.createIcons();
     }
 
-    function toggleNewClientModal() {
-      document.getElementById('newBox').innerHTML = getBoxOptionsHtml('Box 1');
-      document.getElementById('newClientModal').classList.toggle('hidden');
+   function toggleNewClientModal() {
+      const modal = document.getElementById('newClientModal');
+      const isOpening = modal.classList.contains('hidden');
+
+      // Si se va a abrir, vaciar los campos para que no queden datos anteriores
+      if (isOpening) {
+        document.getElementById('newClientName').value = '';
+        document.getElementById('newCarModel').value = '';
+        document.getElementById('newPlate').value = '';
+        document.getElementById('newPhone').value = '';
+        document.getElementById('newUrgency').value = 'in_progress';
+        document.getElementById('newBox').innerHTML = getBoxOptionsHtml('Box 1');
+      }
+
+      modal.classList.toggle('hidden');
       lucide.createIcons();
     }
 
