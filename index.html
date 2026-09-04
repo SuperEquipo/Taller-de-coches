@@ -549,8 +549,10 @@
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getClients`);
         const data = await res.json();
         if (data.status === "success" && data.clients && data.clients.length > 0) {
+          
+          // Reemplazar solo los que no existan usando ID único
           data.clients.forEach(cloudClient => {
-            const exists = clientsData.find(c => c.plate === cloudClient.plate);
+            const exists = clientsData.find(c => c.id === cloudClient.id || (c.folderUrl && c.folderUrl === cloudClient.folderUrl));
             if (!exists) {
               clientsData.push({
                 id: cloudClient.id,
@@ -1392,18 +1394,45 @@
       lucide.createIcons();
     }
 
-    function deleteCurrentClient() {
+    // ELIMINAR CLIENTE / VEHÍCULO (DE LA APP Y DE GOOGLE DRIVE)
+    async function deleteCurrentClient() {
       const active = clientsData[activeClientIndex];
-      if (confirm(`¿Seguro que deseas eliminar el vehículo ${active.carModel} (${active.plate}) de ${active.name}?`)) {
-        clientsData.splice(activeClientIndex, 1);
-        savePersistentData();
-        refreshDashboardMetrics();
-        renderPitLane();
-        renderClientsList();
-        switchTab('clientes');
-        showHUD("🗑️ Vehículo eliminado", false);
-        setTimeout(hideHUD, 1500);
+      if (!confirm(`¿Seguro que deseas eliminar el vehículo ${active.carModel} (${active.plate}) de ${active.name}?\n\nSe enviará su carpeta de Google Drive a la papelera.`)) {
+        return;
       }
+
+      showHUD("🗑️ Eliminando de Drive y base de datos...", true);
+
+      // 1. Enviar orden de borrado a Google Drive y Sheet Máster
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'deleteClient',
+            payload: {
+              clientId: active.id,
+              folderUrl: active.folderUrl
+            }
+          })
+        });
+      } catch (err) {
+        console.log("Error al sincronizar borrado en Drive:", err);
+      }
+
+      // 2. Borrar las piezas pendientes de ese coche en Compras
+      purchasesData = purchasesData.filter(p => p.plate !== active.plate);
+
+      // 3. Borrar del listado de la app
+      clientsData.splice(activeClientIndex, 1);
+      savePersistentData();
+      
+      hideHUD();
+      refreshDashboardMetrics();
+      renderPitLane();
+      renderClientsList();
+      renderPurchasesList();
+      switchTab('clientes');
     }
   </script>
 </body>
