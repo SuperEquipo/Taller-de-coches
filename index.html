@@ -273,8 +273,8 @@
             <span id="recordingIndicator" class="w-3 h-3 rounded-full bg-slate-600"></span>
             <span id="recordingTimer" class="text-xs font-mono font-bold text-slate-400">00:00</span>
           </div>
-          <button id="btnVoiceRecord" onclick="toggleAudioRecording()" class="metal-btn border-rose-500/40 text-rose-400 text-xs px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 glow-red">
-            <i data-lucide="mic" class="w-4 h-4"></i> <span id="btnVoiceText">Grabar Audio</span>
+          <button id="btnVoiceRecord" onclick="toggleVoiceRecording()" class="metal-btn border-rose-500/40 text-rose-400 text-xs px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 glow-red">
+            <i data-lucide="mic" class="w-4 h-4"></i> <span id="btnVoiceText">Dictar Nota</span>
           </button>
         </div>
       </div>
@@ -1241,44 +1241,54 @@
       }
     }
 
-    // 📲 ENVIAR LAS FOTOS REALES ADJUNTAS DIRECTAMENTE A WHATSAPP
+    // 📲 ENVIAR FOTOS REALES ADJUNTAS A WHATSAPP (CÁMARA O GALERÍA)
     async function shareSelectedPhotosViaWhatsApp() {
       const active = clientsData[activeClientIndex];
       if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) {
-        alert("Selecciona al menos una foto tocándola con el dedo.");
+        alert("Toca al menos una foto para seleccionarla.");
         return;
       }
 
-      showHUD("Preparando imágenes para WhatsApp...", true);
+      showHUD("Preparando fotos para WhatsApp...", true);
+
+      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
 
       try {
-        const filesToShare = [];
-
-        selectedPhotosIndices.forEach((idx, i) => {
+        const filePromises = selectedPhotosIndices.map(async (idx, i) => {
           const photoObj = active.photos[idx];
-          const rawBase64 = typeof photoObj === 'string' ? photoObj : (photoObj.base64 || photoObj.url);
+          const rawSrc = typeof photoObj === 'string' ? photoObj : (photoObj.base64 || photoObj.url || photoObj.driveUrl);
 
-          if (rawBase64 && rawBase64.startsWith('data:image')) {
-            const file = base64ToImageFile(rawBase64, `${active.plate}_evidencia_${i + 1}.jpg`);
-            if (file) filesToShare.push(file);
+          // 1. Si es base64 local (cámara o galería directa)
+          if (rawSrc.startsWith('data:image')) {
+            return base64ToImageFile(rawSrc, `${active.plate}_foto_${i + 1}.jpg`);
+          } 
+          // 2. Si es imagen cargada de Drive, convertirla en archivo real
+          else {
+            const res = await fetch(rawSrc);
+            const blob = await res.blob();
+            return new File([blob], `${active.plate}_foto_${i + 1}.jpg`, { type: 'image/jpeg' });
           }
         });
 
+        const filesToShare = (await Promise.all(filePromises)).filter(f => f !== null);
         hideHUD();
 
+        // Abre el menú de compartir de iOS para adjuntar los ARCHIVOS DE IMAGEN a WhatsApp
         if (filesToShare.length > 0 && navigator.canShare && navigator.canShare({ files: filesToShare })) {
-          // Abre el menú nativo del iPhone para enviar los ARCHIVOS DE IMAGEN a WhatsApp
           await navigator.share({
             files: filesToShare,
             title: `FAST GARAGE - ${active.carModel}`,
             text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
           });
         } else {
-          alert("Para enviar fotos reales adjuntas en iPhone, saca la foto desde la app y selecciónala.");
+          // Si estás en PC donde no se pueden inyectar archivos a apps externas
+          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las evidencias de tu ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
+          window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
         }
       } catch (err) {
         hideHUD();
-        console.log("Compartir cancelado:", err);
+        console.log("Compartir finalizado o cancelado:", err);
       }
     }
 
@@ -1311,7 +1321,7 @@
     let recordSeconds = 0;
     let isAudioRecording = false;
 
-    // 🎙️ DICTADO POR VOZ EN TIEMPO REAL CON TRANSCRIPCIÓN DIRECTA A GOOGLE DOC
+   // 🎙️ TRANSCRIBIR VOZ A TEXTO Y GUARDAR EN EL GOOGLE DOC
     let recognition;
     let isRecording = false;
 
@@ -1319,7 +1329,8 @@
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        alert("Tu navegador no soporta dictado por voz directo. Escribe la nota en el cuadro y pulsa Guardar.");
+        alert("Usa el dictado del teclado de tu iPhone o escribe directamente en el cuadro.");
+        document.getElementById('newNoteInput').focus();
         return;
       }
 
@@ -1346,25 +1357,25 @@
             for (let i = 0; i < event.results.length; i++) {
               spokenText += event.results[i][0].transcript;
             }
-            // Muestra las palabras que vas diciendo en la caja de texto
+            // Escribe en la pantalla las palabras exactas que vas diciendo
             input.value = spokenText;
           };
 
           recognition.onerror = (err) => {
             stopVoiceDictationUI();
             hideHUD();
-            console.log("Error de reconocimiento:", err);
+            console.log("Aviso de reconocimiento:", err);
           };
 
           recognition.onend = () => {
             stopVoiceDictationUI();
             hideHUD();
             const finalTranscript = input.value.trim();
-            // Guarda las PALABRAS REALES dichas por el mecánico en el Google Doc
+            // Guarda las PALABRAS EXACTAS en el Google Doc del cliente
             if (finalTranscript.length > 0) {
               sendNoteToGoogleDoc(finalTranscript);
               input.value = '';
-              showHUD("✅ Diagnóstico transcrito y guardado en Doc", false);
+              showHUD("✅ Nota transcrita y guardada en Doc", false);
               setTimeout(hideHUD, 1500);
             }
           };
@@ -1374,7 +1385,7 @@
         } catch (err) {
           stopVoiceDictationUI();
           hideHUD();
-          alert("Error al iniciar el micrófono: " + err);
+          alert("Error al activar el micrófono: " + err);
         }
       } else {
         if (recognition) recognition.stop();
