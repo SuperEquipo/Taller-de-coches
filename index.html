@@ -1224,58 +1224,61 @@
       return new File([u8arr], filename, { type: mime });
     }
 
-    // 📲 ENVIAR FOTOS REALES POR WHATSAPP (COMPATIBLE CON IPHONE, ANDROID Y WEB)
+    // CONVERSOR DE BASE64 A ARCHIVO REAL BINARIO PARA IPHONE
+    function base64ToImageFile(base64Data, filename) {
+      try {
+        const parts = base64Data.split(',');
+        const mime = parts[0].match(/:(.*?);/)[1] || 'image/jpeg';
+        const binaryStr = atob(parts[1]);
+        const len = binaryStr.length;
+        const u8arr = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          u8arr[i] = binaryStr.charCodeAt(i);
+        }
+        return new File([u8arr], filename, { type: mime });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 📲 ENVIAR LAS FOTOS REALES ADJUNTAS DIRECTAMENTE A WHATSAPP
     async function shareSelectedPhotosViaWhatsApp() {
       const active = clientsData[activeClientIndex];
-      if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) return;
+      if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) {
+        alert("Selecciona al menos una foto tocándola con el dedo.");
+        return;
+      }
 
       showHUD("Preparando imágenes para WhatsApp...", true);
 
-      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
-      if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
-
       try {
-        const filePromises = selectedPhotosIndices.map(async (idx, i) => {
-          const photoObj = active.photos[idx];
-          const imgSrc = typeof photoObj === 'string' ? photoObj : (photoObj.url || photoObj.driveUrl);
+        const filesToShare = [];
 
-          // 1. Si es base64 local
-          if (imgSrc.startsWith('data:image')) {
-            const arr = imgSrc.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-            return new File([u8arr], `${active.plate}_foto_${i + 1}.jpg`, { type: mime });
-          } 
-          // 2. Si viene de Google Drive
-          else {
-            const res = await fetch(imgSrc);
-            const blob = await res.blob();
-            return new File([blob], `${active.plate}_foto_${i + 1}.jpg`, { type: 'image/jpeg' });
+        selectedPhotosIndices.forEach((idx, i) => {
+          const photoObj = active.photos[idx];
+          const rawBase64 = typeof photoObj === 'string' ? photoObj : (photoObj.base64 || photoObj.url);
+
+          if (rawBase64 && rawBase64.startsWith('data:image')) {
+            const file = base64ToImageFile(rawBase64, `${active.plate}_evidencia_${i + 1}.jpg`);
+            if (file) filesToShare.push(file);
           }
         });
 
-        const filesArray = await Promise.all(filePromises);
         hideHUD();
 
-        // Enviar archivos reales adjuntos al chat de WhatsApp
-        if (filesArray.length > 0 && navigator.canShare && navigator.canShare({ files: filesArray })) {
+        if (filesToShare.length > 0 && navigator.canShare && navigator.canShare({ files: filesToShare })) {
+          // Abre el menú nativo del iPhone para enviar los ARCHIVOS DE IMAGEN a WhatsApp
           await navigator.share({
-            files: filesArray,
+            files: filesToShare,
             title: `FAST GARAGE - ${active.carModel}`,
-            text: `Fotos del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
+            text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
           });
         } else {
-          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las evidencias fotográficas de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
-          window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
+          alert("Para enviar fotos reales adjuntas en iPhone, saca la foto desde la app y selecciónala.");
         }
       } catch (err) {
         hideHUD();
-        // Si el usuario cancela o no se pueden inyectar archivos, abrir chat directo
-        const text = encodeURIComponent(`Hola ${active.name}, te enviamos las fotos de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
-        window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
+        console.log("Compartir cancelado:", err);
       }
     }
 
@@ -1308,93 +1311,83 @@
     let recordSeconds = 0;
     let isAudioRecording = false;
 
-    // 🎙️ GRABADORA DE AUDIO CON REGISTRO AUTOMÁTICO EN GOOGLE DOC
-    async function toggleAudioRecording() {
+    // 🎙️ DICTADO POR VOZ EN TIEMPO REAL CON TRANSCRIPCIÓN DIRECTA A GOOGLE DOC
+    let recognition;
+    let isRecording = false;
+
+    function toggleVoiceRecording() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Tu navegador no soporta dictado por voz directo. Escribe la nota en el cuadro y pulsa Guardar.");
+        return;
+      }
+
+      const input = document.getElementById('newNoteInput');
       const btnText = document.getElementById('btnVoiceText');
       const indicator = document.getElementById('recordingIndicator');
-      const timer = document.getElementById('recordingTimer');
 
-      if (!isAudioRecording) {
+      if (!isRecording) {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          
-          const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 
-                           (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
-          
-          mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-          audioChunks = [];
+          recognition = new SpeechRecognition();
+          recognition.lang = 'es-ES';
+          recognition.continuous = false;
+          recognition.interimResults = true;
 
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) audioChunks.push(e.data);
+          recognition.onstart = () => {
+            isRecording = true;
+            if (btnText) btnText.innerText = "Parar";
+            if (indicator) indicator.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
+            showHUD("🎙️ Escuchando... habla ahora", true);
           };
 
-          mediaRecorder.onstop = async () => {
-            clearInterval(recordInterval);
-            stream.getTracks().forEach(track => track.stop());
+          recognition.onresult = (event) => {
+            let spokenText = '';
+            for (let i = 0; i < event.results.length; i++) {
+              spokenText += event.results[i][0].transcript;
+            }
+            // Muestra las palabras que vas diciendo en la caja de texto
+            input.value = spokenText;
+          };
 
-            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const timeString = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          recognition.onerror = (err) => {
+            stopVoiceDictationUI();
+            hideHUD();
+            console.log("Error de reconocimiento:", err);
+          };
 
-            const active = clientsData[activeClientIndex];
-            if (!active.audios) active.audios = [];
-            active.audios.unshift({ 
-              url: audioUrl, 
-              date: timeString 
-            });
-            savePersistentData();
-            renderClientNotes(active);
-
-            // 1. Registrar también la nota en el Google Doc del cliente
-            sendNoteToGoogleDoc(`🎙️ Nota de voz grabada a las ${timeString}`);
-
-            // 2. Subir archivo a Google Drive
-            const reader = new FileReader();
-            reader.readAsDataURL(audioBlob);
-            reader.onloadend = async () => {
-              showHUD("Guardando audio en Google Drive...", true);
-              await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                  action: 'uploadAudio',
-                  payload: {
-                    folderId: active.photosFolderId,
-                    base64Data: reader.result,
-                    filename: `VOZ_${active.plate}_${Date.now()}.mp4`
-                  }
-                })
-              });
-              showHUD("✅ Audio guardado y registrado en Doc", false);
+          recognition.onend = () => {
+            stopVoiceDictationUI();
+            hideHUD();
+            const finalTranscript = input.value.trim();
+            // Guarda las PALABRAS REALES dichas por el mecánico en el Google Doc
+            if (finalTranscript.length > 0) {
+              sendNoteToGoogleDoc(finalTranscript);
+              input.value = '';
+              showHUD("✅ Diagnóstico transcrito y guardado en Doc", false);
               setTimeout(hideHUD, 1500);
-            };
+            }
           };
 
-          mediaRecorder.start();
-          isAudioRecording = true;
-          recordSeconds = 0;
-          if (btnText) btnText.innerText = "Parar";
-          if (indicator) indicator.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
-          
-          recordInterval = setInterval(() => {
-            recordSeconds++;
-            const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
-            const secs = String(recordSeconds % 60).padStart(2, '0');
-            if (timer) timer.innerText = `${mins}:${secs}`;
-          }, 1000);
+          recognition.start();
 
         } catch (err) {
-          showHUD("❌ Error: activa el micrófono en Ajustes", false);
-          setTimeout(hideHUD, 3000);
+          stopVoiceDictationUI();
+          hideHUD();
+          alert("Error al iniciar el micrófono: " + err);
         }
       } else {
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-          mediaRecorder.stop();
-        }
-        isAudioRecording = false;
-        if (btnText) btnText.innerText = "Grabar Audio";
-        if (indicator) indicator.className = "w-3 h-3 rounded-full bg-slate-600";
+        if (recognition) recognition.stop();
+        stopVoiceDictationUI();
       }
+    }
+
+    function stopVoiceDictationUI() {
+      isRecording = false;
+      const btnText = document.getElementById('btnVoiceText');
+      const indicator = document.getElementById('recordingIndicator');
+      if (btnText) btnText.innerText = "Dictar Nota";
+      if (indicator) indicator.className = "w-3 h-3 rounded-full bg-slate-600";
     }
 
 // RENDERIZAR REPRODUCTORES DE AUDIO Y NOTAS DE TEXTO
