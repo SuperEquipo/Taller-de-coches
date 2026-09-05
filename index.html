@@ -1308,7 +1308,7 @@
     let recordSeconds = 0;
     let isAudioRecording = false;
 
-    // 🎙️ GRABADORA DE AUDIO MULTIPLATAFORMA (IPHONE / ANDROID / PC)
+    // 🎙️ GRABADORA DE AUDIO CON REGISTRO AUTOMÁTICO EN GOOGLE DOC
     async function toggleAudioRecording() {
       const btnText = document.getElementById('btnVoiceText');
       const indicator = document.getElementById('recordingIndicator');
@@ -1316,10 +1316,8 @@
 
       if (!isAudioRecording) {
         try {
-          // Solicitar micrófono nativo
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           
-          // Compatibilidad de formato con iOS y navegadores modernos
           const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 
                            (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
           
@@ -1332,21 +1330,25 @@
 
           mediaRecorder.onstop = async () => {
             clearInterval(recordInterval);
-            stream.getTracks().forEach(track => track.stop()); // Apagar micrófono
+            stream.getTracks().forEach(track => track.stop());
 
             const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
             const audioUrl = URL.createObjectURL(audioBlob);
+            const timeString = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
             const active = clientsData[activeClientIndex];
             if (!active.audios) active.audios = [];
             active.audios.unshift({ 
               url: audioUrl, 
-              date: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
+              date: timeString 
             });
             savePersistentData();
             renderClientNotes(active);
 
-            // Subir archivo a Google Drive en segundo plano
+            // 1. Registrar también la nota en el Google Doc del cliente
+            sendNoteToGoogleDoc(`🎙️ Nota de voz grabada a las ${timeString}`);
+
+            // 2. Subir archivo a Google Drive
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
@@ -1363,7 +1365,7 @@
                   }
                 })
               });
-              showHUD("✅ Audio guardado en Drive", false);
+              showHUD("✅ Audio guardado y registrado en Doc", false);
               setTimeout(hideHUD, 1500);
             };
           };
@@ -1382,7 +1384,7 @@
           }, 1000);
 
         } catch (err) {
-          showHUD("❌ Error: activa el micrófono para Safari en Ajustes", false);
+          showHUD("❌ Error: activa el micrófono en Ajustes", false);
           setTimeout(hideHUD, 3000);
         }
       } else {
