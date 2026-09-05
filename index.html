@@ -1224,42 +1224,58 @@
       return new File([u8arr], filename, { type: mime });
     }
 
-    // 📲 ENVIAR LAS FOTOS REALES (ARCHIVOS ADJUNTOS) POR WHATSAPP
+    // 📲 ENVIAR FOTOS REALES POR WHATSAPP (COMPATIBLE CON IPHONE, ANDROID Y WEB)
     async function shareSelectedPhotosViaWhatsApp() {
       const active = clientsData[activeClientIndex];
       if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) return;
 
       showHUD("Preparando imágenes para WhatsApp...", true);
 
+      let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
+
       try {
-        const filesArray = [];
-
-        selectedPhotosIndices.forEach((idx, i) => {
+        const filePromises = selectedPhotosIndices.map(async (idx, i) => {
           const photoObj = active.photos[idx];
-          const rawSrc = typeof photoObj === 'string' ? photoObj : (photoObj.base64 || photoObj.url);
+          const imgSrc = typeof photoObj === 'string' ? photoObj : (photoObj.url || photoObj.driveUrl);
 
-          // Si tenemos la imagen en base64 local, convertirla a archivo real
-          if (rawSrc && rawSrc.startsWith('data:image')) {
-            const file = base64ToFile(rawSrc, `${active.plate}_evidencia_${i + 1}.jpg`);
-            filesArray.push(file);
+          // 1. Si es base64 local
+          if (imgSrc.startsWith('data:image')) {
+            const arr = imgSrc.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+            return new File([u8arr], `${active.plate}_foto_${i + 1}.jpg`, { type: mime });
+          } 
+          // 2. Si viene de Google Drive
+          else {
+            const res = await fetch(imgSrc);
+            const blob = await res.blob();
+            return new File([blob], `${active.plate}_foto_${i + 1}.jpg`, { type: 'image/jpeg' });
           }
         });
 
+        const filesArray = await Promise.all(filePromises);
         hideHUD();
 
-        // Disparar el menú de compartir de iOS con los ARCHIVOS ADJUNTOS
+        // Enviar archivos reales adjuntos al chat de WhatsApp
         if (filesArray.length > 0 && navigator.canShare && navigator.canShare({ files: filesArray })) {
           await navigator.share({
             files: filesArray,
             title: `FAST GARAGE - ${active.carModel}`,
-            text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
+            text: `Fotos del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
           });
         } else {
-          alert("Para enviar fotos reales adjuntas, toma la foto desde la app en tu iPhone y pulsa compartir.");
+          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las evidencias fotográficas de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
+          window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
         }
       } catch (err) {
         hideHUD();
-        console.log("Compartir cancelado o no completado:", err);
+        // Si el usuario cancela o no se pueden inyectar archivos, abrir chat directo
+        const text = encodeURIComponent(`Hola ${active.name}, te enviamos las fotos de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
+        window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
       }
     }
 
@@ -1292,7 +1308,13 @@
     let recordSeconds = 0;
     let isAudioRecording = false;
 
-    // 🎙️ GRABADORA DE AUDIO REAL COMPATIBLE CON IPHONE Y ANDROID
+  let mediaRecorder;
+    let audioChunks = [];
+    let recordInterval;
+    let recordSeconds = 0;
+    let isAudioRecording = false;
+
+    // 🎙️ GRABADORA DE AUDIO MULTIPLATAFORMA (IPHONE / ANDROID / PC)
     async function toggleAudioRecording() {
       const btnText = document.getElementById('btnVoiceText');
       const indicator = document.getElementById('recordingIndicator');
@@ -1300,30 +1322,41 @@
 
       if (!isAudioRecording) {
         try {
+          // Solicitar micrófono nativo
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
+          
+          // Compatibilidad de formato con iOS y navegadores modernos
+          const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 
+                           (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+          
+          mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
           audioChunks = [];
 
           mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) audioChunks.push(e.data);
+            if (e.data && e.data.size > 0) audioChunks.push(e.data);
           };
 
           mediaRecorder.onstop = async () => {
             clearInterval(recordInterval);
-            const audioBlob = new Blob(audioChunks, { type: 'audio/mp4' });
+            stream.getTracks().forEach(track => track.stop()); // Apagar micrófono
+
+            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
             const audioUrl = URL.createObjectURL(audioBlob);
 
             const active = clientsData[activeClientIndex];
             if (!active.audios) active.audios = [];
-            active.audios.unshift({ url: audioUrl, date: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) });
+            active.audios.unshift({ 
+              url: audioUrl, 
+              date: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
+            });
             savePersistentData();
             renderClientNotes(active);
 
-            // Subir el archivo de audio a la carpeta de Google Drive del cliente
+            // Subir archivo a Google Drive en segundo plano
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
-              showHUD("Subiendo audio a Google Drive...", true);
+              showHUD("Guardando audio en Google Drive...", true);
               await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1355,7 +1388,8 @@
           }, 1000);
 
         } catch (err) {
-          alert("Debes permitir el acceso al micrófono en los ajustes de tu iPhone para grabar notas de voz.");
+          showHUD("❌ Error: activa el micrófono para Safari en Ajustes", false);
+          setTimeout(hideHUD, 3000);
         }
       } else {
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
