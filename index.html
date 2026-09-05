@@ -1205,42 +1205,64 @@
       }
     }
 
-    // 📲 ENVIAR LAS IMÁGENES REALES (ARCHIVOS) POR WHATSAPP MEDIANTE LA API NATIVA
+    // 📲 ENVIAR FOTOS REALES POR WHATSAPP (SIN ERRORES DE CORS EN IPHONE)
     async function shareSelectedPhotosViaWhatsApp() {
       const active = clientsData[activeClientIndex];
-      if (selectedPhotosIndices.length === 0) return;
+      if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) return;
 
       showHUD("Preparando fotos para WhatsApp...", true);
 
       try {
-        const filePromises = selectedPhotosIndices.map(async (idx, i) => {
-          const photoObj = active.photos[idx];
-          const imgSrc = typeof photoObj === 'string' ? photoObj : photoObj.url;
-          
-          const response = await fetch(imgSrc);
-          const blob = await response.blob();
-          return new File([blob], `${active.plate}_foto_${i + 1}.jpg`, { type: 'image/jpeg' });
-        });
+        const filesArray = [];
 
-        const filesArray = await Promise.all(filePromises);
+        for (let i = 0; i < selectedPhotosIndices.length; i++) {
+          const idx = selectedPhotosIndices[i];
+          const photoObj = active.photos[idx];
+          const imgSrc = typeof photoObj === 'string' ? photoObj : (photoObj.url || photoObj.driveUrl);
+
+          // Convertir imagen a archivo real mediante Canvas para evitar bloqueo CORS de Drive
+          const file = await new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.naturalWidth || img.width;
+              canvas.height = img.naturalHeight || img.height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob((blob) => {
+                resolve(new File([blob], `${active.plate}_evidencia_${i + 1}.jpg`, { type: "image/jpeg" }));
+              }, "image/jpeg", 0.85);
+            };
+            img.onerror = () => {
+              // Si falla la carga de imagen, resolver nulo
+              resolve(null);
+            };
+            img.src = imgSrc;
+          });
+
+          if (file) filesArray.push(file);
+        }
+
         hideHUD();
 
-        if (navigator.canShare && navigator.canShare({ files: filesArray })) {
+        // Si tenemos archivos y el iPhone soporta compartir archivos
+        if (filesArray.length > 0 && navigator.canShare && navigator.canShare({ files: filesArray })) {
           await navigator.share({
             files: filesArray,
             title: `FAST GARAGE - ${active.carModel}`,
             text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
           });
         } else {
-          // Fallback en PC / navegadores que no permitan inyectar archivos directos
+          // Fallback universal a chat de WhatsApp con enlace de Drive
           let cleanPhone = (active.phone || '').replace(/[^0-9]/g, '');
           if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
-          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las fotos de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
-          window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`, '_blank');
+          const text = encodeURIComponent(`Hola ${active.name}, te enviamos las evidencias fotográficas de tu vehículo ${active.carModel} (${active.plate}) en FAST GARAGE:\n${active.folderUrl}`);
+          window.location.href = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
         }
       } catch (err) {
         hideHUD();
-        console.log("Envío cancelado o no soportado:", err);
+        console.log("Envío cancelado o finalizado:", err);
       }
     }
 
