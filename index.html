@@ -178,7 +178,10 @@
           <span class="text-xs font-black text-white uppercase tracking-wider block">Evidencias Fotográficas</span>
           <span class="text-[10px] text-slate-400 font-mono" id="photoSelectionCount">Toca las fotos para seleccionarlas</span>
         </div>
-        <button id="btnCancelSelect" onclick="clearPhotoSelection()" class="text-[10px] text-rose-400 metal-btn px-2 py-1 rounded-lg hidden">Deseleccionar</button>
+        <div class="flex gap-1.5">
+          <button id="btnDeleteSelect" onclick="deleteSelectedPhotos()" class="text-[10px] text-rose-400 metal-btn px-2 py-1 rounded-lg hidden flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i> Eliminar</button>
+          <button id="btnCancelSelect" onclick="clearPhotoSelection()" class="text-[10px] text-slate-400 metal-btn px-2 py-1 rounded-lg hidden">Deseleccionar</button>
+        </div>
       </div>
 
       <!-- BOTONES DE SUBIDA -->
@@ -1193,21 +1196,46 @@
       renderClientPhotos(active.photos || []);
     }
 
-    function updateSelectionUI() {
+  function updateSelectionUI() {
       const container = document.getElementById('multiShareContainer');
       const countLabel = document.getElementById('photoSelectionCount');
       const cancelBtn = document.getElementById('btnCancelSelect');
+      const deleteBtn = document.getElementById('btnDeleteSelect');
       const btnText = document.getElementById('btnSharePhotosText');
+
+      if (!container || !countLabel) return;
 
       if (selectedPhotosIndices.length > 0) {
         container.classList.remove('hidden');
-        cancelBtn.classList.remove('hidden');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
         countLabel.innerText = `${selectedPhotosIndices.length} foto(s) seleccionada(s)`;
-        btnText.innerText = `Enviar ${selectedPhotosIndices.length} foto(s) por WhatsApp`;
+        if (btnText) btnText.innerText = `Enviar ${selectedPhotosIndices.length} foto(s) por WhatsApp`;
       } else {
         container.classList.add('hidden');
-        cancelBtn.classList.add('hidden');
+        if (cancelBtn) cancelBtn.classList.add('hidden');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
         countLabel.innerText = "Toca las fotos para seleccionarlas";
+      }
+      lucide.createIcons();
+    }
+
+    // 🗑️ ELIMINAR FOTOS SELECCIONADAS DE LA FICHA
+    function deleteSelectedPhotos() {
+      const active = clientsData[activeClientIndex];
+      if (selectedPhotosIndices.length === 0) return;
+
+      if (confirm(`¿Seguro que deseas eliminar ${selectedPhotosIndices.length} foto(s) de este vehículo?`)) {
+        // Ordenar índices de mayor a menor para no alterar el array al borrar
+        selectedPhotosIndices.sort((a, b) => b - a).forEach(idx => {
+          active.photos.splice(idx, 1);
+        });
+
+        selectedPhotosIndices = [];
+        savePersistentData();
+        renderClientPhotos(active.photos);
+        showHUD("🗑️ Fotos eliminadas de la ficha", false);
+        setTimeout(hideHUD, 1500);
       }
     }
 
@@ -1451,21 +1479,26 @@ let mediaRecorder;
       if (indicator) indicator.className = "w-3 h-3 rounded-full bg-slate-600";
     }
 
-// RENDERIZAR REPRODUCTORES DE AUDIO Y NOTAS DE TEXTO
+// RENDERIZAR REPRODUCTORES DE AUDIO Y NOTAS (CON BOTÓN DE BORRAR)
     function renderClientNotes(c) {
       const feed = document.getElementById('notesFeed');
       if (!feed) return;
       feed.innerHTML = '';
 
-      // 1. Renderizar notas de audio si existen
+      // 1. Renderizar notas de audio con botón de papelera
       if (c.audios && c.audios.length > 0) {
-        c.audios.forEach(a => {
+        c.audios.forEach((a, aIdx) => {
           const div = document.createElement('div');
           div.className = "metal-panel rounded-2xl p-3 border-l-2 border-l-cyan-400 space-y-2";
           div.innerHTML = `
-            <div class="flex justify-between text-[10px] font-mono text-slate-400">
+            <div class="flex justify-between items-center text-[10px] font-mono text-slate-400">
               <span class="text-cyan-300 font-bold flex items-center gap-1"><i data-lucide="mic" class="w-3 h-3"></i> Nota de Voz</span>
-              <span>${a.date}</span>
+              <div class="flex items-center gap-2">
+                <span>${a.date}</span>
+                <button onclick="deleteAudioNote(${aIdx})" class="text-rose-400 hover:text-rose-300 p-1 metal-btn rounded-md" title="Borrar audio">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              </div>
             </div>
             <audio controls src="${a.url}" class="w-full h-8 rounded-lg outline-none"></audio>
           `;
@@ -1473,15 +1506,20 @@ let mediaRecorder;
         });
       }
 
-      // 2. Renderizar notas de texto
+      // 2. Renderizar notas de texto con botón de papelera
       if (c.notes && c.notes.length > 0) {
-        c.notes.forEach(n => {
+        c.notes.forEach((n, nIdx) => {
           const div = document.createElement('div');
           div.className = "p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300";
           div.innerHTML = `
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 mb-1">
+            <div class="flex justify-between items-center text-[10px] font-mono text-slate-500 mb-1">
               <span class="text-cyan-400 font-bold">Nota Técnica</span>
-              <span>Registrada</span>
+              <div class="flex items-center gap-2">
+                <span>Registrada</span>
+                <button onclick="deleteTextNote(${nIdx})" class="text-rose-400 hover:text-rose-300 p-1 metal-btn rounded-md" title="Borrar nota">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              </div>
             </div>
             "${n}"
           `;
@@ -1489,6 +1527,26 @@ let mediaRecorder;
         });
       }
       lucide.createIcons();
+    }
+
+    // 🗑️ BORRAR NOTA DE AUDIO INDIVIDUAL
+    function deleteAudioNote(aIdx) {
+      if (confirm("¿Deseas eliminar esta nota de voz?")) {
+        const active = clientsData[activeClientIndex];
+        active.audios.splice(aIdx, 1);
+        savePersistentData();
+        renderClientNotes(active);
+      }
+    }
+
+    // 🗑️ BORRAR NOTA DE TEXTO INDIVIDUAL
+    function deleteTextNote(nIdx) {
+      if (confirm("¿Deseas eliminar esta nota de texto?")) {
+        const active = clientsData[activeClientIndex];
+        active.notes.splice(nIdx, 1);
+        savePersistentData();
+        renderClientNotes(active);
+      }
     }
 
     function submitManualNote() {
