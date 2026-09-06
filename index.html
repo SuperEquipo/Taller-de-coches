@@ -1258,7 +1258,7 @@
       }
     }
 
-    // 📲 ENVIAR LAS FOTOS REALES ADJUNTAS DIRECTAMENTE A WHATSAPP
+  // 📲 ENVIAR FOTOS REALES ADJUNTAS A WHATSAPP (SIEMPRE COMO ARCHIVOS .JPG)
     async function shareSelectedPhotosViaWhatsApp() {
       const active = clientsData[activeClientIndex];
       if (!selectedPhotosIndices || selectedPhotosIndices.length === 0) {
@@ -1266,7 +1266,7 @@
         return;
       }
 
-      showHUD("Abriendo WhatsApp...", true);
+      showHUD("Abriendo WhatsApp con las fotos...", true);
 
       try {
         const filesToShare = [];
@@ -1275,7 +1275,7 @@
           const photoObj = active.photos[idx];
           const rawBase64 = typeof photoObj === 'string' ? photoObj : (photoObj.base64 || photoObj.url);
 
-          if (rawBase64 && rawBase64.startsWith('data:image')) {
+          if (rawBase64) {
             const file = base64ToImageFile(rawBase64, `${active.plate}_foto_${i + 1}.jpg`);
             if (file) filesToShare.push(file);
           }
@@ -1283,15 +1283,13 @@
 
         hideHUD();
 
-        // Abre el menú nativo del iPhone con los archivos de imagen reales adjuntos
         if (filesToShare.length > 0 && navigator.canShare && navigator.canShare({ files: filesToShare })) {
+          // Abre el menú nativo de iOS con los ARCHIVOS DE IMAGEN adjuntos directamente
           await navigator.share({
             files: filesToShare,
             title: `FAST GARAGE - ${active.carModel}`,
-            text: `Evidencias del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
+            text: `Fotos del vehículo ${active.carModel} (${active.plate}) en FAST GARAGE.`
           });
-        } else {
-          alert("Selecciona fotos realizadas en la sesión para enviarlas adjuntas.");
         }
       } catch (err) {
         hideHUD();
