@@ -1322,13 +1322,15 @@
       }
     }
 
-  let mediaRecorder;
+let mediaRecorder;
     let audioChunks = [];
     let recordInterval;
     let recordSeconds = 0;
     let isAudioRecording = false;
+    let liveSpeechRecognition;
+    let liveTranscriptText = "";
 
-    // 🎙️ GRABADORA DE AUDIO: REPRODUCTOR EN APP + SUBIDA A DRIVE + TEXTO A DOC
+    // 🎙️ GRABA EL AUDIO EN LA APP Y TRANSCRIBE TUS PALABRAS AL GOOGLE DOC
     async function toggleAudioRecording() {
       const btnText = document.getElementById('btnVoiceText');
       const indicator = document.getElementById('recordingIndicator');
@@ -1344,24 +1346,46 @@
           
           mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
           audioChunks = [];
+          liveTranscriptText = "";
 
           mediaRecorder.ondataavailable = (e) => {
             if (e.data && e.data.size > 0) audioChunks.push(e.data);
           };
 
+          // Iniciar transcripción simultánea si el navegador lo permite
+          const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (SpeechRec) {
+            try {
+              liveSpeechRecognition = new SpeechRec();
+              liveSpeechRecognition.lang = 'es-ES';
+              liveSpeechRecognition.continuous = true;
+              liveSpeechRecognition.interimResults = true;
+              liveSpeechRecognition.onresult = (e) => {
+                let current = '';
+                for (let i = 0; i < e.results.length; i++) {
+                  current += e.results[i][0].transcript;
+                }
+                liveTranscriptText = current;
+                noteInput.value = current; // Muestra el texto que vas diciendo en la pantalla
+              };
+              liveSpeechRecognition.start();
+            } catch(e){}
+          }
+
           mediaRecorder.onstop = async () => {
             clearInterval(recordInterval);
             stream.getTracks().forEach(track => track.stop());
+            if (liveSpeechRecognition) try { liveSpeechRecognition.stop(); } catch(e){}
 
             const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/mp4' });
             const timeString = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-            // Convertir a Base64 permanente para que el reproductor funcione siempre en la app
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
               const permanentAudioBase64 = reader.result;
 
+              // 1. Guardar reproductor en la app
               const active = clientsData[activeClientIndex];
               if (!active.audios) active.audios = [];
               active.audios.unshift({ 
@@ -1371,17 +1395,13 @@
               savePersistentData();
               renderClientNotes(active);
 
-              // 1. Si hay texto escrito en el cuadro, enviarlo como diagnóstico al Google Doc
-              const textContent = noteInput.value.trim();
-              if (textContent.length > 0) {
-                sendNoteToGoogleDoc(textContent);
-                noteInput.value = '';
-              } else {
-                sendNoteToGoogleDoc(`Nota técnica grabada a las ${timeString}`);
-              }
+              // 2. Guardar las PALABRAS TRANSCRITAS en el Google Doc del cliente
+              const textToSend = liveTranscriptText.trim() || noteInput.value.trim() || "Diagnóstico registrado por voz";
+              sendNoteToGoogleDoc(textToSend);
+              noteInput.value = '';
 
-              // 2. Subir el archivo de audio a la carpeta de Drive del cliente
-              showHUD("Guardando audio en Google Drive...", true);
+              // 3. Subir archivo a Drive
+              showHUD("Guardando audio y transcripción en Drive...", true);
               await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1394,7 +1414,7 @@
                   }
                 })
               });
-              showHUD("✅ Audio guardado en Drive y Doc", false);
+              showHUD("✅ Audio y transcripción guardados", false);
               setTimeout(hideHUD, 1500);
             };
           };
@@ -1425,7 +1445,6 @@
         if (indicator) indicator.className = "w-3 h-3 rounded-full bg-slate-600";
       }
     }
-
     function stopVoiceDictationUI() {
       isRecording = false;
       const btnText = document.getElementById('btnVoiceText');
